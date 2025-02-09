@@ -20,7 +20,7 @@ public class User { //extends 시간설정 (상속)
     @GeneratedValue(strategy = GenerationType.IDENTITY) //000001
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 20) //id
+    @Column(unique = true, nullable = false, length = 21) //id
     private String username;
 
     @Column(nullable = false, length = 60) //패스워드 인코딩(BCrypt)
