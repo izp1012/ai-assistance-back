@@ -28,14 +28,7 @@ public class UserController {
 
     @PostMapping("/join")
     public ResponseEntity<?> join(HttpServletRequest request, @RequestBody @Valid JoinReqDto joinReqDto, BindingResult bindingResult){
-        //TODO api 로그 남기기 위한 RequsetDto
-        String ifid = UUID.randomUUID().toString();
-        String userId = CustomRequestUtil.getUserId(request);
-        String ip = CustomRequestUtil.getClientIp(request);
-        RequestDto<?> requestDto = new RequestDto<>(ifid, userId, ip, LocalDateTime.now(), joinReqDto);
-        //TODO aop로 로그 남기기
-
         JoinRespDto joinRespDto = userService.join(joinReqDto);
-        return new ResponseEntity<>(new ResponseDto<>(ifid,1, "회원가입 성공", LocalDateTime.now(), joinRespDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(new ResponseDto<>(1, "회원가입 성공", LocalDateTime.now(), joinRespDto), HttpStatus.CREATED);
     }
 }
