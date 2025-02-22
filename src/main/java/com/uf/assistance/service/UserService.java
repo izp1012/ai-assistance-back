@@ -2,7 +2,9 @@ package com.uf.assistance.service;
 
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
+import com.uf.assistance.dto.user.UserReqDto;
 import com.uf.assistance.dto.user.UserReqDto.JoinReqDto;
+import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +38,21 @@ public class UserService {
 
         // 3. dto 응답
         return new JoinRespDto(userPersistence);
+    }
+
+    public LoginRespDto login(UserReqDto.LoginReqDto loginReqDto) {
+        Optional<User> userOptional = userRepository.findByUsername(loginReqDto.getUsername());
+
+        if(userOptional.isEmpty()) {
+            throw new CustomApiException("사용자를 찾을 수 없습니다");
+        }
+
+        User user = userOptional.get();
+
+        if(!passwordEncoder.matches(loginReqDto.getPassword(), user.getPassword())) {
+            throw new CustomApiException("비밀번호가 일치하지 않습니다");
+        }
+
+        return new LoginRespDto(user);
     }
 }

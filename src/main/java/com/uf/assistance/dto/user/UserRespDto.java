@@ -13,12 +13,12 @@ public class UserRespDto {
     public static class LoginRespDto {
         private Long id;
         private String username;
-        private String createdAt;
+        private String loginAt;
 
         public LoginRespDto(User user) {
             this.id = user.getId();
             this.username = user.getUsername();
-            this.createdAt = CustomDateUtil.toStringFormat(user.getCreatedAt());
+            this.loginAt = CustomDateUtil.toStringFormat(user.getCreatedAt());
         }
     }
 
