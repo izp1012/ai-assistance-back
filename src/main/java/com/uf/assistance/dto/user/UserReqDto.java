@@ -20,6 +20,7 @@ public class UserReqDto {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class JoinReqDto {
 
         //영문 숫자 길이 2~20
