@@ -1,11 +1,12 @@
 package com.uf.assistance.web;
 
-import com.uf.assistance.dto.RequestDto;
 import com.uf.assistance.dto.ResponseDto;
+import com.uf.assistance.dto.user.UserReqDto;
+import com.uf.assistance.dto.user.UserReqDto.LoginReqDto;
 import com.uf.assistance.dto.user.UserReqDto.JoinReqDto;
+import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
 import com.uf.assistance.service.UserService;
-import com.uf.assistance.util.CustomRequestUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -30,5 +30,11 @@ public class UserController {
     public ResponseEntity<?> join(HttpServletRequest request, @RequestBody @Valid JoinReqDto joinReqDto, BindingResult bindingResult){
         JoinRespDto joinRespDto = userService.join(joinReqDto);
         return new ResponseEntity<>(new ResponseDto<>(1, "회원가입 성공", LocalDateTime.now(), joinRespDto), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(HttpServletRequest request, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
+        LoginRespDto loginRespDto = userService.login(loginReqDto);
+        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", LocalDateTime.now(), loginRespDto), HttpStatus.OK);
     }
 }
