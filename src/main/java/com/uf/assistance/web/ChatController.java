@@ -4,6 +4,7 @@ import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.message.ChatMessageDto;
 import com.uf.assistance.dto.message.ChatRespDto;
 import com.uf.assistance.service.ChatService;
+import com.uf.assistance.util.CustomDateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,6 @@ public class ChatController {
     public ResponseEntity<?> sendMessage(@RequestBody @Valid ChatMessageDto chatMessageDto) {
         System.out.println("📨 받은 메시지: " + chatMessageDto.getText() + " / From : " + chatMessageDto.getSender());
         ChatRespDto chatRespDto = chatService.sendMessage(chatMessageDto);
-        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", LocalDateTime.now(), chatMessageDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatMessageDto), HttpStatus.OK);
     }
 }
