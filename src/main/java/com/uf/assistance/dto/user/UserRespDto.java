@@ -14,11 +14,13 @@ public class UserRespDto {
         private Long id;
         private String username;
         private String loginAt;
+        private String jwtToken;
 
-        public LoginRespDto(User user) {
+        public LoginRespDto(User user, String jwtToken) {
             this.id = user.getId();
             this.username = user.getUsername();
             this.loginAt = CustomDateUtil.toStringFormat(user.getCreatedAt());
+            this.jwtToken = jwtToken;
         }
     }
 

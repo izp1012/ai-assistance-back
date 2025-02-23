@@ -16,7 +16,7 @@ public class CustomResponseUtil {
     public static void success(HttpServletResponse response, String ifid, String msg, Object dto){
         try{
             ObjectMapper om = new ObjectMapper();
-            ResponseDto<?> responseDto = new ResponseDto<>(1, msg, LocalDateTime.now(),dto);
+            ResponseDto<?> responseDto = new ResponseDto<>(1, msg, new CustomDateUtil().toStringFormat(LocalDateTime.now()), dto);
             String responseBody = om.writeValueAsString(responseDto);
             response.setContentType("application/json; charset=utf-8");
             response.setStatus(200);
@@ -29,7 +29,7 @@ public class CustomResponseUtil {
     public static void fail(HttpServletResponse response, String ifid, String msg, HttpStatus httpStatus){
         try{
             ObjectMapper om = new ObjectMapper();
-            ResponseDto<?> responseDto = new ResponseDto<>(-1, msg, LocalDateTime.now(), null);
+            ResponseDto<?> responseDto = new ResponseDto<>(-1, msg, new CustomDateUtil().toStringFormat(LocalDateTime.now()), null);
             String responseBody = om.writeValueAsString(responseDto);
             response.setContentType("application/json; charset=utf-8");
             response.setStatus(httpStatus.value());

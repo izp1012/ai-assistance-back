@@ -1,5 +1,8 @@
 package com.uf.assistance.service;
 
+import com.uf.assistance.config.auth.LoginUser;
+import com.uf.assistance.config.jwt.JwtProcess;
+import com.uf.assistance.config.jwt.JwtVO;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
 import com.uf.assistance.dto.user.UserReqDto;
@@ -7,9 +10,12 @@ import com.uf.assistance.dto.user.UserReqDto.JoinReqDto;
 import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +46,7 @@ public class UserService {
         return new JoinRespDto(userPersistence);
     }
 
-    public LoginRespDto login(UserReqDto.LoginReqDto loginReqDto) {
+    public LoginRespDto login(UserReqDto.LoginReqDto loginReqDto, HttpServletResponse response) {
         Optional<User> userOptional = userRepository.findByUsername(loginReqDto.getUsername());
 
         if(userOptional.isEmpty()) {
@@ -53,6 +59,18 @@ public class UserService {
             throw new CustomApiException("비밀번호가 일치하지 않습니다");
         }
 
-        return new LoginRespDto(user);
+        // JWT 생성
+        LoginUser loginUser = new LoginUser(user);
+        String jwtToken = JwtProcess.create(loginUser);
+
+        // HTTP 응답 헤더에 JWT 추가
+        response.addHeader(JwtVO.HEADER_STRING, JwtVO.TOKEN_PREFIX + jwtToken);
+
+        // SecurityContextHolder 에 저장
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+        return new LoginRespDto(user, jwtToken);
     }
 }

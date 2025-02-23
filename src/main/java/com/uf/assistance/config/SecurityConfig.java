@@ -1,17 +1,22 @@
 package com.uf.assistance.config;
 
+import com.uf.assistance.config.jwt.JwtAuthenticationFilter;
+import com.uf.assistance.domain.user.UserEnum;
+import com.uf.assistance.util.CustomResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,6 +25,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final AuthenticationConfiguration authenticationConfiguration;
+
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+        this.authenticationConfiguration = authenticationConfiguration;
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -27,24 +37,26 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    //JWT 필터 등록이 필요함
-//    public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
-//        @Override
-//        public void configure(HttpSecurity builder) throws Exception {
-//            AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
-//            builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    //JWT 필터 등록이 필요함
+    public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
+
+        @Override
+        public void configure(HttpSecurity builder) throws Exception {
+            AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
+            builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
 //            builder.addFilter(new JwtAuthorizationFilter(authenticationManager));
-//            super.configure(builder);
-//        }
-//
-//        public HttpSecurity build(){
-//            return getBuilder();
-//        }
-//    }
+            super.configure(builder);
+        }
+    }
 
     // JWT 서버 생성 예정. Session 미사용
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         
         log.debug("디버그: filterChain 빈 등록됨");
 
@@ -69,8 +81,8 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         //필터 적용
-//        http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
-//
+        http.addFilter(new JwtAuthenticationFilter(authenticationManager));
+
 //        // 인증 실패 가로채기
 //        http.exceptionHandling(exceptionHandling -> exceptionHandling
 //                .authenticationEntryPoint((request, response, authException) -> {
@@ -85,7 +97,7 @@ public class SecurityConfig {
 //        });
 //
 //        http.authorizeHttpRequests(authorize -> authorize
-//                .requestMatchers("/api/s/**").authenticated()
+//                .requestMatchers("/api/auth/**").authenticated()
 //                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
 //                .anyRequest().permitAll()
 //        );
@@ -94,7 +106,6 @@ public class SecurityConfig {
     }
 
     public CorsConfigurationSource configurationSource(){
-        log.debug("디버그: CorsConfigurationSource cors 설정이 SecurityFilterChain에 등록됨");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*"); //GET POST PUT DELETE (Javascript 요청 허용)
