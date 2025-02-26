@@ -96,11 +96,12 @@ public class SecurityConfig {
 //           });
 //        });
 //
-//        http.authorizeHttpRequests(authorize -> authorize
-//                .requestMatchers("/api/auth/**").authenticated()
-//                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
-//                .anyRequest().permitAll()
-//        );
+        http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
+//                .anyRequest().authenticated()
+                .anyRequest().permitAll()
+        );
 
         return http.build();
     }
