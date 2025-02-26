@@ -1,6 +1,5 @@
 package com.uf.assistance.config;
 
-import com.uf.assistance.handler.WebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +11,8 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocketMessageBroker       // stomp 활성화
 @EnableWebSocket                    // webSocket 활성화
 @RequiredArgsConstructor
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final WebSocketHandler webSocketHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -27,10 +25,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
         registry.addEndpoint("/chat")  // WebSocket 연결 엔드포인트 설정
                 .setAllowedOriginPatterns("*")
                 .withSockJS();  // SockJS 지원 (브라우저 호환성)
-    }
-
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/api/chat").setAllowedOrigins("*");
     }
 }

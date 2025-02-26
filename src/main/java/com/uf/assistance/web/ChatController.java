@@ -9,9 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -24,9 +24,9 @@ public class ChatController {
 
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
-    public ResponseEntity<?> sendMessage(@RequestBody @Valid ChatMessageDto chatMessageDto) {
+    public ResponseEntity<?> sendMessage(@Payload @Valid ChatMessageDto chatMessageDto) {
         System.out.println("📨 받은 메시지: " + chatMessageDto.getText() + " / From : " + chatMessageDto.getSender());
         ChatRespDto chatRespDto = chatService.sendMessage(chatMessageDto);
-        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatMessageDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 }
