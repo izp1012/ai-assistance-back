@@ -99,6 +99,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
+                .requestMatchers("/chat/**").permitAll() //WebSocket 엔드포인트 허용
 //                .anyRequest().authenticated()
                 .anyRequest().permitAll()
         );

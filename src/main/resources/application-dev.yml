@@ -7,7 +7,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/youf
+    url: jdbc:postgresql://13.125.44.184:5432/youf
     driver-class-name: org.postgresql.Driver
     username: admin
     password: admin1234
@@ -27,3 +27,5 @@ logging:
   level:
     com.uf.assistance: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
