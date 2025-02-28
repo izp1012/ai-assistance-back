@@ -27,6 +27,6 @@ public class ChatController {
     public ResponseEntity<?> sendMessage(@Payload @Valid ChatMessageDto chatMessageDto) {
         System.out.println("📨 받은 메시지: " + chatMessageDto.getText() + " / From : " + chatMessageDto.getSender());
         ChatRespDto chatRespDto = chatService.sendMessage(chatMessageDto);
-        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 }

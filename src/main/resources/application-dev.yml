@@ -26,6 +26,7 @@ spring:
 logging:
   level:
     com.uf.assistance: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.bind: DEBUG
     org.springframework.web.socket: DEBUG
     org.springframework.messaging: DEBUG
+    org.springframework.web.SimpLogging: DEBUG
