@@ -9,9 +9,8 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+@Getter
 public class ChatRespDto {
-    @Getter
-    @Setter
     private Long id;
     private User sender;
     private String text;
