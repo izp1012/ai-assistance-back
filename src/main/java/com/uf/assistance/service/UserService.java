@@ -32,11 +32,12 @@ public class UserService {
     //서비스는 DTO로 요청받고 DTO로 응답한다.
     @Transactional //트랜잭션이 메서드 시작할때, 시작되고, 종료될 때 함께 종료
     public JoinRespDto join(JoinReqDto joinReqDto) {
-        // 1. 동일 유저네임 존재 검사
-        Optional<User> userOptional = userRepository.findByUsername(joinReqDto.getUsername());
-        if (userOptional.isPresent()) {
+
+        // 1. 동일 사용자 이메일 존재 검사
+        Optional<User> userEmailOptional = userRepository.findByEmail(joinReqDto.getEmail());
+        if (userEmailOptional.isPresent()) {
             //Username 중복
-            throw new CustomApiException("동일한 Username이 존재합니다.");
+            throw new CustomApiException("동일한 E-Mail 이 존재합니다.");
         }
 
         // 2. 패스워드 인코딩 - 회원가입
@@ -47,7 +48,7 @@ public class UserService {
     }
 
     public LoginRespDto login(UserReqDto.LoginReqDto loginReqDto, HttpServletResponse response) {
-        Optional<User> userOptional = userRepository.findByUsername(loginReqDto.getUsername());
+        Optional<User> userOptional = userRepository.findByEmail(loginReqDto.getEmail());
 
         if(userOptional.isEmpty()) {
             throw new CustomApiException("사용자를 찾을 수 없습니다");

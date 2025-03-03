@@ -31,12 +31,12 @@ public class UserRespDto {
     public static class JoinRespDto {
         private Long id;
         private String username;
-        private String fullname;
+        private String email;
 
         public JoinRespDto(User user) {
             this.id = user.getId();
             this.username = user.getUsername();
-            this.fullname = user.getFullname();
+            this.email = user.getEmail();
         }
     }
 }
