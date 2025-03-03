@@ -9,5 +9,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     //select * from user where username = ?
     Optional<User> findByUsername(String username); //Jpa NamedQuery 작동
 
+    Optional<User> findByEmail(String useremail); //Jpa NamedQuery 작동
     //save - 이미 만들어져 있음
 }
