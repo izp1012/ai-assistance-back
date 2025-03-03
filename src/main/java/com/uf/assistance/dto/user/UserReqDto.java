@@ -16,7 +16,7 @@ public class UserReqDto {
     @AllArgsConstructor
     @Builder
     public static class LoginReqDto {
-        private String email;
+        private String username;
         private String password;
     }
 

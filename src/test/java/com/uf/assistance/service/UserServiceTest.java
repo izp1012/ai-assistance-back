@@ -110,7 +110,7 @@ public class UserServiceTest {
     public void login_test() throws Exception {
         // given
         LoginReqDto loginReqDto = LoginReqDto.builder()
-                .email("inhyo@gmail.com")
+                .username("John")
                 .password("1234")
                 .build();
 
