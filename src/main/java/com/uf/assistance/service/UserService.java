@@ -74,4 +74,14 @@ public class UserService {
 
         return new LoginRespDto(user, jwtToken);
     }
+
+    public User findUserbyUsername(String username) {
+        Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found for username: " + username)));;
+
+        User user = userOptional.get();
+
+        return user;
+    }
+
 }
