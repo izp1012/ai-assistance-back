@@ -33,12 +33,12 @@ public class UserController {
     @PostMapping("/auth/join")
     public ResponseEntity<?> join(HttpServletRequest request, @RequestBody @Valid JoinReqDto joinReqDto, BindingResult bindingResult){
         JoinRespDto joinRespDto = userService.join(joinReqDto);
-        return new ResponseEntity<>(new ResponseDto<>(1, "회원가입 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), joinRespDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(new ResponseDto<>(1, "회원가입 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), joinRespDto), HttpStatus.CREATED);
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
         LoginRespDto loginRespDto = userService.login(loginReqDto, response);
-        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), loginRespDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), loginRespDto), HttpStatus.OK);
     }
 }

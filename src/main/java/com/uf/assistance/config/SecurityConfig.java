@@ -1,13 +1,10 @@
 package com.uf.assistance.config;
 
 import com.uf.assistance.config.jwt.JwtAuthenticationFilter;
-import com.uf.assistance.domain.user.UserEnum;
-import com.uf.assistance.util.CustomResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +13,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -98,7 +94,8 @@ public class SecurityConfig {
 //
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
+//                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
+                .requestMatchers("/api/admin/**").permitAll() //임시로 모든 요청 허용
                 .requestMatchers("/chat/**").permitAll() //WebSocket 엔드포인트 허용
 //                .anyRequest().authenticated()
                 .anyRequest().permitAll()

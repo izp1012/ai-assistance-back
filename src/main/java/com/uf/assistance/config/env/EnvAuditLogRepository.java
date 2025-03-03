@@ -17,7 +17,7 @@ public interface EnvAuditLogRepository extends JpaRepository<EnvAuditLog, Long> 
     /**
      * 특정 설정 키의 변경 이력 조회
      */
-    List<EnvAuditLog> findByKeyOrderByChangedAtDesc(String key);
+    List<EnvAuditLog> findBySettingKeyOrderByChangedAtDesc(String settingKey);
 
     /**
      * 특정 기간 동안의 설정 변경 이력 조회
@@ -32,7 +32,7 @@ public interface EnvAuditLogRepository extends JpaRepository<EnvAuditLog, Long> 
     /**
      * 특정 작업에 대한 설정 변경 이력 조회 (CREATE, UPDATE, DELETE)
      */
-    List<EnvAuditLog> findByActionOrderByChangedAtDesc(String action);
+    List<EnvAuditLog> findByActionTypeOrderByChangedAtDesc(String actionType);
 
     /**
      * 페이징 처리된 설정 변경 이력 조회
@@ -42,5 +42,15 @@ public interface EnvAuditLogRepository extends JpaRepository<EnvAuditLog, Long> 
     /**
      * 특정 설정 키에 대한 페이징 처리된 변경 이력 조회
      */
-    Page<EnvAuditLog> findByKeyOrderByChangedAtDesc(String key, Pageable pageable);
+    Page<EnvAuditLog> findBySettingKeyOrderByChangedAtDesc(String settingKey, Pageable pageable);
+
+    /**
+     * 특정 값으로 변경된 설정 이력 조회
+     */
+    List<EnvAuditLog> findByNewSettingValueOrderByChangedAtDesc(String newSettingValue);
+
+    /**
+     * 특정 이전 값이 변경된 설정 이력 조회
+     */
+    List<EnvAuditLog> findByOldSettingValueOrderByChangedAtDesc(String oldSettingValue);
 }

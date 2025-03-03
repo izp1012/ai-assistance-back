@@ -18,18 +18,18 @@ public interface EnvEntryRepository extends JpaRepository<EnvEntry, String> {
     /**
      * 키로 설정 값 조회
      */
-    Optional<EnvEntry> findByKey(String key);
+    Optional<EnvEntry> findBySettingKey(String settingKey);
 
     /**
      * 키 이름 패턴으로 설정 값 조회
      */
-    @Query("SELECT e FROM EnvEntry e WHERE e.key LIKE :pattern")
-    List<EnvEntry> findByKeyLike(@Param("pattern") String pattern);
+    @Query("SELECT e FROM EnvEntry e WHERE e.settingKey LIKE :pattern")
+    List<EnvEntry> findBySettingKeyLike(@Param("pattern") String pattern);
 
     /**
      * 키 이름이 특정 접두사로 시작하는 설정 값 조회 (그룹별 조회에 사용)
      */
-    List<EnvEntry> findByKeyStartingWith(String prefix);
+    List<EnvEntry> findBySettingKeyStartingWith(String prefix);
 
     /**
      * 특정 기간 동안 업데이트된 설정 값 조회
@@ -44,8 +44,8 @@ public interface EnvEntryRepository extends JpaRepository<EnvEntry, String> {
     /**
      * 키 이름이 패턴과 일치하는 설정 값 조회
      */
-    @Query("SELECT e FROM EnvEntry e WHERE LOWER(e.key) LIKE LOWER(CONCAT('%', :pattern, '%'))")
-    List<EnvEntry> findByKeyContaining(@Param("pattern") String pattern);
+    @Query("SELECT e FROM EnvEntry e WHERE LOWER(e.settingKey) LIKE LOWER(CONCAT('%', :pattern, '%'))")
+    List<EnvEntry> findBySettingKeyContaining(@Param("pattern") String pattern);
 
     /**
      * 설명에 특정 텍스트가 포함된 설정 값 조회
@@ -56,15 +56,27 @@ public interface EnvEntryRepository extends JpaRepository<EnvEntry, String> {
     /**
      * 여러 키에 해당하는 설정 값 조회
      */
-    List<EnvEntry> findByKeyIn(List<String> keys);
+    List<EnvEntry> findBySettingKeyIn(List<String> settingKeys);
 
     /**
      * 특정 키가 있는지 확인
      */
-    boolean existsByKey(String key);
+    boolean existsBySettingKey(String settingKey);
 
     /**
      * 키 이름으로 설정 값 삭제
      */
-    void deleteByKey(String key);
+    void deleteBySettingKey(String settingKey);
+
+    /**
+     * 특정 값을 가진 설정 조회
+     */
+    @Query("SELECT e FROM EnvEntry e WHERE e.settingValue = :settingValue")
+    List<EnvEntry> findBySettingValue(@Param("settingValue") String settingValue);
+
+    /**
+     * 특정 값에 특정 문자열이 포함된 설정 조회
+     */
+    @Query("SELECT e FROM EnvEntry e WHERE LOWER(e.settingValue) LIKE LOWER(CONCAT('%', :valuePattern, '%'))")
+    List<EnvEntry> findBySettingValueContaining(@Param("valuePattern") String valuePattern);
 }

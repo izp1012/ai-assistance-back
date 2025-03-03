@@ -19,13 +19,14 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class EnvEntry {
+
     @Id
     @NotBlank
-    @Column(nullable = false, unique = true)
-    private String key;
+    @Column(name = "setting_key", nullable = false, unique = true)
+    private String settingKey;
 
-    @Column(columnDefinition = "TEXT")
-    private String value;
+    @Column(name = "setting_value", columnDefinition = "TEXT")
+    private String settingValue;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -40,16 +41,16 @@ public class EnvEntry {
     public EnvEntry() {
     }
 
-    public EnvEntry(String key, String value, String description) {
-        this.key = key;
-        this.value = value;
+    public EnvEntry(String settingKey, String settingValue, String description) {
+        this.settingKey = settingKey;
+        this.settingValue = settingValue;
         this.description = description;
         this.updatedAt = LocalDateTime.now();
     }
 
-    public EnvEntry(String key, String value, String description, String updatedBy) {
-        this.key = key;
-        this.value = value;
+    public EnvEntry(String settingKey, String settingValue, String description, String updatedBy) {
+        this.settingKey = settingKey;
+        this.settingValue = settingValue;
         this.description = description;
         this.updatedAt = LocalDateTime.now();
         this.updatedBy = updatedBy;
@@ -58,11 +59,10 @@ public class EnvEntry {
     @Override
     public String toString() {
         return "EnvEntry{" +
-                "key='" + key + '\'' +
-                ", value='" + (
-                    key.toLowerCase().contains("key") ||
-                    key.toLowerCase().contains("secret") ||
-                    key.toLowerCase().contains("password") ? "*****" : value) + '\'' +
+                "settingKey='" + settingKey + '\'' +
+                ", settingValue='" + (settingKey.toLowerCase().contains("key") ||
+                settingKey.toLowerCase().contains("secret") ||
+                settingKey.toLowerCase().contains("password") ? "*****" : settingValue) + '\'' +
                 ", description='" + description + '\'' +
                 ", updatedAt=" + updatedAt +
                 ", updatedBy='" + updatedBy + '\'' +
