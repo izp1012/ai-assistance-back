@@ -1,5 +1,6 @@
 package com.uf.assistance.config;
 
+import com.uf.assistance.dto.message.ChatRespDto;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic");  // 클라이언트가 구독할 주소 (예: "/topic/public")
+        registry.enableSimpleBroker("/topic/public");  // 클라이언트가 구독할 주소 (예: "/topic/public")
         registry.setApplicationDestinationPrefixes("/app");  // 클라이언트가 메시지를 보낼 때의 prefix 설정
     }
 
