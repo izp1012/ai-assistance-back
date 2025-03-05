@@ -4,8 +4,10 @@ import com.uf.assistance.config.env.EnvAuditLog;
 import com.uf.assistance.config.env.EnvEntry;
 import com.uf.assistance.config.env.EnvHelper;
 import com.uf.assistance.config.env.EnvPropertySourceConfig;
+import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.env.EnvDto;
 import com.uf.assistance.service.EnvService;
+import com.uf.assistance.util.CustomDateUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -50,66 +52,68 @@ public class EnvController {
      * 모든 설정 값 조회
      */
     @GetMapping
-    public ResponseEntity<List<EnvDto>> getAllSettings() {
+    public ResponseEntity<?> getAllSettings() {
         List<EnvEntry> settings = envService.getAllSettings();
         List<EnvDto> dtos = settings.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 조회 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), dtos), HttpStatus.OK);
     }
 
     /**
      * 키로 특정 설정 값 조회
      */
     @GetMapping("/{settingKey}")
-    public ResponseEntity<EnvDto> getSettingByKey(@PathVariable String settingKey) {
+    public ResponseEntity<?> getSettingByKey(@PathVariable String settingKey) {
         return envService.getSettingByKey(settingKey)
-                .map(this::convertToDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(entry -> {
+                    EnvDto dto = convertToDto(entry);
+                    return new ResponseEntity<>(new ResponseDto<>(1, "설정 조회 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), dto), HttpStatus.OK);
+                })
+                .orElse(new ResponseEntity<>(new ResponseDto<>(-1, "설정을 찾을 수 없음", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND));
     }
 
     /**
      * 접두사로 시작하는 설정 값 조회 (그룹별)
      */
     @GetMapping("/prefix/{prefix}")
-    public ResponseEntity<List<EnvDto>> getSettingsByPrefix(@PathVariable String prefix) {
+    public ResponseEntity<?> getSettingsByPrefix(@PathVariable String prefix) {
         List<EnvEntry> settings = envService.getSettingsByPrefix(prefix);
         List<EnvDto> dtos = settings.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return new ResponseEntity<>(new ResponseDto<>(1, "접두사로 설정 조회 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), dtos), HttpStatus.OK);
     }
 
     /**
      * 패턴으로 설정 값 검색
      */
     @GetMapping("/search")
-    public ResponseEntity<List<EnvDto>> searchSettings(@RequestParam String pattern) {
+    public ResponseEntity<?> searchSettings(@RequestParam String pattern) {
         List<EnvEntry> settings = envService.searchSettings(pattern);
         List<EnvDto> dtos = settings.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 검색 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), dtos), HttpStatus.OK);
     }
 
     /**
      * 설정 값으로 검색
      */
     @GetMapping("/search-by-value")
-    public ResponseEntity<List<EnvDto>> searchSettingsByValue(@RequestParam String valuePattern) {
+    public ResponseEntity<?> searchSettingsByValue(@RequestParam String valuePattern) {
         List<EnvEntry> settings = envService.searchSettingsByValue(valuePattern);
         List<EnvDto> dtos = settings.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 값으로 검색 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), dtos), HttpStatus.OK);
     }
 
     /**
      * 설정 값 생성
      */
     @PostMapping
-    public ResponseEntity<EnvDto> createSetting(
+    public ResponseEntity<?> createSetting(
             @Valid @RequestBody EnvDto envDto,
             HttpServletRequest request) {
 
@@ -123,14 +127,14 @@ public class EnvController {
         // 환경 헬퍼 캐시 초기화
         envHelper.clearCache();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(saved));
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), convertToDto(saved)), HttpStatus.CREATED);
     }
 
     /**
      * 설정 값 일괄 생성
      */
     @PostMapping("/batch")
-    public ResponseEntity<List<EnvDto>> createSettings(
+    public ResponseEntity<?> createSettings(
             @Valid @RequestBody List<EnvDto> envDtos,
             HttpServletRequest request) {
 
@@ -150,20 +154,20 @@ public class EnvController {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 일괄 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), result), HttpStatus.CREATED);
     }
 
     /**
      * 설정 값 업데이트
      */
     @PutMapping("/{settingKey}")
-    public ResponseEntity<EnvDto> updateSetting(
+    public ResponseEntity<?> updateSetting(
             @PathVariable String settingKey,
             @Valid @RequestBody EnvDto envDto,
             HttpServletRequest request) {
 
         if (!settingKey.equals(envDto.getSettingKey())) {
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<>(new ResponseDto<>(-1, "경로 변수와 요청 본문의 키가 일치하지 않음", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.BAD_REQUEST);
         }
 
         return envService.getSettingByKey(settingKey)
@@ -176,16 +180,16 @@ public class EnvController {
                     // 환경 헬퍼 캐시 초기화
                     envHelper.clearCache();
 
-                    return ResponseEntity.ok(convertToDto(updated));
+                    return new ResponseEntity<>(new ResponseDto<>(1, "설정 업데이트 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), convertToDto(updated)), HttpStatus.OK);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(new ResponseEntity<>(new ResponseDto<>(-1, "업데이트할 설정을 찾을 수 없음", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND));
     }
 
     /**
      * 설정 값 삭제
      */
     @DeleteMapping("/{settingKey}")
-    public ResponseEntity<Void> deleteSetting(
+    public ResponseEntity<?> deleteSetting(
             @PathVariable String settingKey,
             HttpServletRequest request) {
 
@@ -196,39 +200,39 @@ public class EnvController {
                     // 환경 헬퍼 캐시 초기화
                     envHelper.clearCache();
 
-                    return ResponseEntity.noContent().<Void>build();
+                    return new ResponseEntity<>(new ResponseDto<>(1, "설정 삭제 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.OK);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(new ResponseEntity<>(new ResponseDto<>(-1, "삭제할 설정을 찾을 수 없음", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND));
     }
 
     /**
      * 설정 변경 이력 조회
      */
     @GetMapping("/{settingKey}/history")
-    public ResponseEntity<List<EnvAuditLog>> getSettingHistory(@PathVariable String settingKey) {
+    public ResponseEntity<?> getSettingHistory(@PathVariable String settingKey) {
         List<EnvAuditLog> history = envService.getSettingHistory(settingKey);
-        return ResponseEntity.ok(history);
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 이력 조회 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), history), HttpStatus.OK);
     }
 
     /**
      * 모든 설정 변경 이력 페이징 조회
      */
     @GetMapping("/history")
-    public ResponseEntity<Page<EnvAuditLog>> getAllSettingHistory(
+    public ResponseEntity<?> getAllSettingHistory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("changedAt").descending());
         Page<EnvAuditLog> history = envService.getAllSettingHistory(pageable);
 
-        return ResponseEntity.ok(history);
+        return new ResponseEntity<>(new ResponseDto<>(1, "모든 설정 이력 조회 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), history), HttpStatus.OK);
     }
 
     /**
      * 특정 기간 동안 업데이트된 설정 조회
      */
     @GetMapping("/updated")
-    public ResponseEntity<List<EnvDto>> getSettingsUpdatedBetween(
+    public ResponseEntity<?> getSettingsUpdatedBetween(
             @RequestParam String from,
             @RequestParam String to) {
 
@@ -242,10 +246,10 @@ public class EnvController {
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
 
-            return ResponseEntity.ok(dtos);
+            return new ResponseEntity<>(new ResponseDto<>(1, "기간별 설정 조회 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), dtos), HttpStatus.OK);
         } catch (Exception e) {
             logger.error("날짜 파싱 오류: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<>(new ResponseDto<>(-1, "날짜 형식 오류", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -253,13 +257,13 @@ public class EnvController {
      * 모든 설정 새로고침
      */
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, Object>> refreshAllSettings() {
+    public ResponseEntity<?> refreshAllSettings() {
         Map<String, Object> result = propertySourceConfig.forceRefresh();
 
         // 환경 헬퍼 캐시도 초기화
         envHelper.clearCache();
 
-        return ResponseEntity.ok(result);
+        return new ResponseEntity<>(new ResponseDto<>(1, "설정 새로고침 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), result), HttpStatus.OK);
     }
 
     /**

@@ -46,7 +46,7 @@ public class ChatController {
 
         messagingTemplate.convertAndSend("/topic/public/" + roomId, chatRespDto);
 
-        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 성공", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
     @MessageMapping("/chat.addUser/{roomId}")
@@ -58,7 +58,7 @@ public class ChatController {
         headerAccessor.getSessionAttributes().put("roomId", roomId.toString());
 
         ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, roomId, "JOIN");
-        return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", new CustomDateUtil().toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
     @GetMapping("/api/messages/{roomId}")
