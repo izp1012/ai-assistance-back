@@ -7,7 +7,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://13.125.44.184:5432/youf
+    url: jdbc:postgresql://3.39.234.47:5432/youf
     driver-class-name: org.postgresql.Driver
     username: admin
     password: admin1234
