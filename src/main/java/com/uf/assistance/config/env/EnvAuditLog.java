@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
  * 환경 설정 변경 이력을 저장하는 엔티티
  */
 @Getter
-@Setter@Entity
+@Setter
+@Entity
 @Table(name = "env_audit_log")
 public class EnvAuditLog {
 
