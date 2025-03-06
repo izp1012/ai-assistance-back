@@ -1,6 +1,7 @@
 package com.uf.assistance.config.env;
 
 import com.uf.assistance.service.EnvService;
+import jakarta.persistence.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -21,9 +22,11 @@ public class EnvPropertySource extends EnumerablePropertySource<EnvService> {
     private static final Logger logger = LoggerFactory.getLogger(EnvPropertySource.class);
 
     // 캐시된 속성 (동시성 지원)
+    @Transient
     private final Map<String, String> propertiesCache = new ConcurrentHashMap<>();
 
     // 정규화된 이름 매핑 (OPENAI_API_KEY -> openai.api.key)
+    @Transient
     private final Map<String, String> normalizedKeyMapping = new ConcurrentHashMap<>();
 
     // 마지막 새로고침 시간
