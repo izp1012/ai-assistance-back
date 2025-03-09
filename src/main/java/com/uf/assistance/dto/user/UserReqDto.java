@@ -41,17 +41,11 @@ public class UserReqDto {
         @NotEmpty
         private String email;
 
-        //영어 한글 2~20
-        @Pattern(regexp = "^[a-zA-Z가-힣0-9]{2,20}$", message = "한글/영문/숫자 2~20자로 작성해주세요.")
-        @NotEmpty
-        private String fullname;
-
         public User toEntity(BCryptPasswordEncoder passwordEncoder) {
             return User.builder()
                     .username(username)
                     .password(passwordEncoder.encode(password))
                     .email(email)
-                    .fullname(fullname)
                     .role(UserEnum.CUSTOMER)
                     .build();
         }

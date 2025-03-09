@@ -50,7 +50,6 @@ public class UserServiceTest {
                 .username("John")
                 .password(passwordEncoder.encode("1234"))  // 비밀번호 암호화 적용
                 .email("john@gmail.com")
-                .fullname("존")
                 .role(UserEnum.CUSTOMER)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -58,20 +57,24 @@ public class UserServiceTest {
         userRepository.save(testUser);
     }
 
-//    @Test
-//    void testFindByUsername() {
-//        List<User> users = userRepository.findAll();
-//        users.forEach(user -> System.out.println("DB에 저장된 유저: " + user.getUsername()));
-//        // When
-//        User foundUser = userRepository.findByUsername("John")
-//                .orElseThrow(() -> new RuntimeException("User not found"));  // 예외 처리 추가
-//
-//        System.out.println("조회된 유저: " + foundUser);
-//
-//        // Then
-//        assertThat(foundUser).isNotNull();
-//        assertThat(foundUser.getUsername()).isEqualTo("John");
-//    }
+    @Test
+    void testFindByUsername() {
+
+        //Given
+        when(userRepository.findByUsername("John")).thenReturn(Optional.of(testUser));
+
+        List<User> users = userRepository.findAll();
+        users.forEach(user -> System.out.println("DB에 저장된 유저: " + user.getUsername()));
+        // When
+        User foundUser = userRepository.findByUsername("John")
+                .orElseThrow(() -> new RuntimeException("User not found"));  // 예외 처리 추가
+
+        System.out.println("조회된 유저: " + foundUser.getUsername());
+
+        // Then
+        assertThat(foundUser).isNotNull();
+        assertThat(foundUser.getUsername()).isEqualTo("John");
+    }
 
     @Test
     void testFindByUsername_NotFound() {
@@ -89,7 +92,6 @@ public class UserServiceTest {
                 .username("inhyo")
                 .password("1234")
                 .email("inhyo@gmail.com")
-                .fullname("존")
                 .build();
 
         //stub1
