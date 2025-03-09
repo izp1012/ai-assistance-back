@@ -25,7 +25,7 @@ public class OpenAIService implements AIService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${openai.api.key}")
+    @Value("${openai.api.key:sample}")
     private String apiKey;
 
     @Value("${openai.api.url:https://api.openai.com/v1/chat/completions}")
