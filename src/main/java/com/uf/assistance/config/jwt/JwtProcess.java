@@ -16,6 +16,11 @@ public class JwtProcess {
 
     //토큰 생성
     public static String create(LoginUser loginUser){
+
+        if ("ERROR".equals(JwtVO.SECRET)) {
+            throw new IllegalArgumentException("JWT 시크릿 키가 유효하지 않습니다.");
+        }
+
         String jwtToken = JWT.create()
                 .withSubject("uf")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
@@ -29,6 +34,11 @@ public class JwtProcess {
     // 토큰 검증
     // return 되는 LoginUser 객체를 강제로 시큐리티 세션에 직접 주입할 예쩡
     public static LoginUser verify(String token){
+
+        if ("ERROR".equals(JwtVO.SECRET)) {
+            throw new IllegalArgumentException("JWT 시크릿 키가 유효하지 않습니다.");
+        }
+
         DecodedJWT decodeddjwt = JWT.require(Algorithm.HMAC512(JwtVO.SECRET)).build().verify(token);
         Long id = decodeddjwt.getClaim("id").asLong();
         String role = decodeddjwt.getClaim("role").asString();
