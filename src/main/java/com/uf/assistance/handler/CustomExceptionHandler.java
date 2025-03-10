@@ -2,6 +2,7 @@ package com.uf.assistance.handler;
 
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.handler.exception.CustomApiException;
+import com.uf.assistance.handler.exception.ResourceNotFoundException;
 import com.uf.assistance.util.CustomDateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,15 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(
                 new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null)
                 , HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> resourceNotFoundException(ResourceNotFoundException e){
+        log.error(e.getMessage(), e);
+        return new ResponseEntity<>(
+                new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null)
+                , HttpStatus.NOT_FOUND
         );
     }
 }
