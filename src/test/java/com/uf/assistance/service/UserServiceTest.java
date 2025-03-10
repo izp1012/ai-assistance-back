@@ -1,5 +1,8 @@
 package com.uf.assistance.service;
 
+import com.uf.assistance.config.auth.LoginUser;
+import com.uf.assistance.config.jwt.JwtProcess;
+import com.uf.assistance.config.jwt.JwtVO;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserEnum;
 import com.uf.assistance.domain.user.UserRepository;
@@ -10,12 +13,13 @@ import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -117,22 +121,30 @@ public class UserServiceTest {
                 .build();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
-        // 응답 헤더 설정
-        response.addHeader("Authorization", "Bearer token-value");
 
-        // 응답 본문 설정
-        response.getWriter().write("Hello, Test!");
+        try (MockedStatic<JwtProcess> jwtProcessMock = Mockito.mockStatic(JwtProcess.class)) {
+            jwtProcessMock.when(() -> JwtProcess.create(any(LoginUser.class)))
+                    .thenReturn("token-value");
 
-        //stub1
-        when(userRepository.findByUsername("John")).thenReturn(Optional.of(testUser));
-        when(bCryptPasswordEncoder.matches("1234", testUser.getPassword())).thenReturn(true);
+            // 응답 헤더 설정
+            response.addHeader("Authorization", "Bearer token-value");
 
-        // When
-        LoginRespDto loginRespDto = userService.login(loginReqDto, response);
-        // Then
-        assertNotNull(loginRespDto);
-        assertEquals("John", loginRespDto.getUsername());
-        assertThat(response.getHeader("Authorization")).isEqualTo("Bearer token-value");
-        assertThat(response.getContentAsString()).isEqualTo("Hello, Test!");
+            // 응답 본문 설정
+            response.getWriter().write("Hello, Test!");
+
+            //stub1
+            when(userRepository.findByUsername("John")).thenReturn(Optional.of(testUser));
+            when(bCryptPasswordEncoder.matches("1234", testUser.getPassword())).thenReturn(true);
+
+            // When
+            LoginRespDto loginRespDto = userService.login(loginReqDto, response);
+            // Then
+            assertNotNull(loginRespDto);
+            assertEquals("John", loginRespDto.getUsername());
+            assertThat(response.getHeader("Authorization")).isEqualTo("Bearer token-value");
+            assertThat(response.getContentAsString()).isEqualTo("Hello, Test!");
+        }
+
+
     }
 }
