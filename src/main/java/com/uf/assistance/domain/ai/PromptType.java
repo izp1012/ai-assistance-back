@@ -3,7 +3,7 @@ package com.uf.assistance.domain.ai;
 /**
  * 프롬프트 타입 열거형
  */
-enum PromptType {
+public enum PromptType {
     BASE("기본 프롬프트"),
     CUSTOM("커스텀 프롬프트");
 
