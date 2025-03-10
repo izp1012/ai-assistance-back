@@ -1,7 +1,6 @@
 package com.uf.assistance.service;
 
 import com.uf.assistance.config.env.*;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +8,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -40,6 +40,7 @@ public class EnvService {
     /**
      * 모든 설정 값 조회
      */
+    @Transactional(readOnly = true)
     public List<EnvEntry> getAllSettings() {
         return envRepository.findAll();
     }
@@ -47,6 +48,7 @@ public class EnvService {
     /**
      * 키로 설정 값 조회
      */
+    @Transactional(readOnly = true)
     public Optional<EnvEntry> getSettingByKey(String settingKey) {
         return envRepository.findBySettingKey(settingKey);
     }
@@ -54,6 +56,7 @@ public class EnvService {
     /**
      * 키로 설정 값 문자열 조회
      */
+    @Transactional(readOnly = true)
     public String getSettingValueByKey(String settingKey) {
         return envRepository.findBySettingKey(settingKey)
                 .map(EnvEntry::getSettingValue)
@@ -63,6 +66,7 @@ public class EnvService {
     /**
      * 키로 설정 값 조회 (기본값 지원)
      */
+    @Transactional(readOnly = true)
     public String getSettingValueByKey(String settingKey, String defaultValue) {
         return envRepository.findBySettingKey(settingKey)
                 .map(EnvEntry::getSettingValue)
