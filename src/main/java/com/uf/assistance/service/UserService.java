@@ -10,6 +10,7 @@ import com.uf.assistance.dto.user.UserReqDto.JoinReqDto;
 import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
+import com.uf.assistance.handler.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -76,11 +77,19 @@ public class UserService {
 
     public User findUserbyUsername(String username) {
         Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found for username: " + username)));;
+                .orElseThrow(() -> new IllegalArgumentException("User not found for username: " + username)));
 
-        User user = userOptional.get();
+        return userOptional.get();
+    }
 
-        return user;
+    /**
+     * ID로 사용자 조회
+     * @param userId 사용자 ID
+     * @return 사용자 엔티티
+     */
+    public User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
     }
 
 }
