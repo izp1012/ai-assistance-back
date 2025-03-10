@@ -32,7 +32,7 @@ public class SpringAIOpenAIService implements AIService {
     public SpringAIOpenAIService(
             ChatModel chatModel,
             OpenAiChatOptions openAiChatOptions,
-            @Value("${openai.api.key:#{null}}") String apiKey,
+            @Value("${spring.ai.openai.api.key:#{null}}") String apiKey,
             @Value("${openai.max.tokens:4096}") int maxTokens) {
         this.chatModel = chatModel;
         this.openAiChatOptions = openAiChatOptions;

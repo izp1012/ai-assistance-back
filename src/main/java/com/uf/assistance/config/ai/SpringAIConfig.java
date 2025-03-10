@@ -7,11 +7,14 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.util.StringUtils;
 
 @Configuration
+@DependsOn("envPropertySource") // envPropertySource Bean이 먼저 생성되게
 public class SpringAIConfig {
-    @Value("${openai.api.key:#{null}}")
+    @Value("${spring.ai.openai.api.key:#{null}}")
     private String openAiApiKey;
 
     @Value("${openai.model:gpt-4}")
@@ -50,6 +53,7 @@ public class SpringAIConfig {
      * ChatModel 빈 생성
      */
     @Bean
+    @Primary
     public ChatModel chatModel(OpenAiApi openAiApi, OpenAiChatOptions openAiChatOptions) {
         return OpenAiChatModel.builder()
                 .openAiApi(openAiApi)
