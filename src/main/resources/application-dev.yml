@@ -29,6 +29,7 @@ spring:
       '[hibernate.default_batch_fetch_size]': 100
       '[hibernate.format_sql]': true
       '[hibernate.query.timeout]': 10000  # 쿼리 타임아웃: 10초
+      '[hibernate.jdbc.timeout]': 10  # 초 단위
     show-sql: true
   output:
     ansi:
