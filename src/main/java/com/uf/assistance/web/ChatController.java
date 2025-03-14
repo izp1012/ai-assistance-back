@@ -2,12 +2,18 @@ package com.uf.assistance.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.domain.chat.Chat;
+import com.uf.assistance.domain.chat.MessageType;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.message.ChatReqDto;
 import com.uf.assistance.dto.message.ChatRespDto;
 import com.uf.assistance.service.ChatService;
 import com.uf.assistance.util.CustomDateUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +43,30 @@ public class ChatController {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @MessageMapping("/chat.sendMessageAI/{roomId}")
+    @SendTo("/topic/public/ai/{roomId}")
+    public ResponseEntity<?> sendMessageAI(@Payload @Valid ChatReqDto chatReqDto, @DestinationVariable Long roomId) {
+
+        if (roomId == null) {
+            throw new IllegalArgumentException("roomId is missing in the WebSocket request");
+        }
+
+        ChatRespDto chatRespDtoUser = chatService.sendMessage(chatReqDto, roomId, MessageType.ASSISTANT);
+        ChatRespDto chatRespDtoAI = chatService.sendMessageAI(chatReqDto, roomId, MessageType.USER);
+        System.out.println("📨AI - 받은 메시지: " + chatRespDtoAI.getContent() + " / From : " + chatReqDto.getSender());
+
+        messagingTemplate.convertAndSend("/topic/public/ai/" + roomId, chatRespDtoUser);
+        messagingTemplate.convertAndSend("/topic/public/ai/" + roomId, chatRespDtoAI);
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "AI 채팅 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoAI), HttpStatus.OK);
+    }
+
     @MessageMapping("/chat.sendMessage/{roomId}")
-    @SendTo("/topic/public/{roomId}")
+    @SendTo("/topic/public/ai/{roomId}")
     public ResponseEntity<?> sendMessage(@Payload @Valid ChatReqDto chatReqDto, @DestinationVariable Long roomId) {
 
         System.out.println("📨 받은 메시지: " + chatReqDto.getContent() + " / From : " + chatReqDto.getSender());
-        ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, roomId, "CHAT");
+        ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, roomId, MessageType.USER);
 
         messagingTemplate.convertAndSend("/topic/public/" + roomId, chatRespDto);
 
@@ -57,7 +81,7 @@ public class ChatController {
         headerAccessor.getSessionAttributes().put("username", chatReqDto.getSender());
         headerAccessor.getSessionAttributes().put("roomId", roomId.toString());
 
-        ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, roomId, "JOIN");
+        ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, roomId, MessageType.JOIN);
         return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
