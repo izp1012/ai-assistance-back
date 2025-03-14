@@ -39,13 +39,13 @@ public class ChatReqDto {
         this.type = type;
     }
 
-    public static Chat toEntity(User user, String content, Room room, String Type) {
+    public static Chat toEntity(User user, String content, Room room, MessageType Type) {
 
         return Chat.builder()
                 .sender(user)
                 .content(content)
                 .Status(ChatStatus.SENT)
-                .type(MessageType.valueOf(Type))
+                .type(Type)
                 .room(room)
                 .build();
     }
