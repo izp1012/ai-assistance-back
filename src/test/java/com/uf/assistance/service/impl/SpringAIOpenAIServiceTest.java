@@ -1,6 +1,8 @@
 package com.uf.assistance.service.impl;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import com.uf.assistance.domain.ai.AIRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,9 @@ import org.mockito.ArgumentCaptor;
 public class SpringAIOpenAIServiceTest {
 
     @Mock
+    private AIRepository aiRepository;
+
+    @Mock
     private ChatModel chatModel;
 
     @Mock
@@ -51,7 +56,7 @@ public class SpringAIOpenAIServiceTest {
     @BeforeEach
     void setUp() {
         // 명시적으로 서비스 객체 생성 (생성자 주입 방식을 사용)
-        aiService = new SpringAIOpenAIService(chatModel, openAiChatOptions, "test-api-key", 4096);
+        aiService = new SpringAIOpenAIService(aiRepository, chatModel, openAiChatOptions, "test-api-key", 4096);
     }
 
     @Test

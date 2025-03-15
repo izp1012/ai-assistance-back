@@ -1,6 +1,12 @@
 package com.uf.assistance.service.impl;
 
+import com.uf.assistance.domain.ai.AI;
+import com.uf.assistance.domain.ai.AIRepository;
+import com.uf.assistance.domain.user.User;
+import com.uf.assistance.dto.ai.AIReqDto;
+import com.uf.assistance.dto.ai.AIRespDto;
 import com.uf.assistance.service.AIService;
+import com.uf.assistance.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
@@ -24,16 +30,19 @@ import java.util.List;
 public class SpringAIOpenAIService implements AIService {
     private static final Logger logger = LoggerFactory.getLogger(SpringAIOpenAIService.class);
 
+    private final AIRepository aiRepository;
     private final ChatModel chatModel;
     private final OpenAiChatOptions openAiChatOptions;
     private final String apiKey;
     private final int maxTokens;
 
     public SpringAIOpenAIService(
+            AIRepository aiRepository,
             ChatModel chatModel,
             OpenAiChatOptions openAiChatOptions,
             @Value("${spring.ai.openai.api-key:#{null}}") String apiKey,
             @Value("${openai.max.tokens:4096}") int maxTokens) {
+        this.aiRepository = aiRepository;
         this.chatModel = chatModel;
         this.openAiChatOptions = openAiChatOptions;
         this.apiKey = apiKey;
@@ -85,5 +94,17 @@ public class SpringAIOpenAIService implements AIService {
     @Override
     public int getMaxTokens() {
         return maxTokens;
+    }
+
+    @Override
+    public List<AI> getAvailableAIs() {
+        logger.debug("사용 가능한 모든 공개 AI 조회");
+        return aiRepository.findAllByIsActiveTrueAndIsPublicTrue();
+    }
+
+    @Override
+    public AIRespDto createAI(AIReqDto aiReqDto) {
+        AI ai = aiRepository.save(AIReqDto.toEntity(aiReqDto));
+        return AIRespDto.from(ai);
     }
 }

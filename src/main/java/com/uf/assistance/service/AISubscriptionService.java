@@ -1,7 +1,7 @@
 package com.uf.assistance.service;
 
 import com.uf.assistance.domain.ai.AI;
-import com.uf.assistance.domain.ai.AISubscription;
+import com.uf.assistance.dto.ai.AISubScriptionRespDto;
 
 import java.util.List;
 import java.util.Map;
@@ -11,12 +11,6 @@ import java.util.Map;
  * 사용자의 AI 구독 관리 및 AI 응답 생성 서비스에 대한 기능 정의
  */
 public interface AISubscriptionService {
-
-    /**
-     * 사용 가능한 모든 AI 조회
-     * @return AI 목록
-     */
-    List<AI> getAvailableAIs();
 
     /**
      * 특정 사용자가 구독한 AI 목록 조회
@@ -46,7 +40,7 @@ public interface AISubscriptionService {
      * @param aiId AI ID
      * @return 생성된 구독 정보
      */
-    AISubscription subscribe(Long userId, Long aiId);
+    AISubScriptionRespDto subscribe(Long userId, Long aiId);
 
     /**
      * AI 구독 취소

@@ -1,9 +1,12 @@
 package com.uf.assistance.service.impl;
 import com.uf.assistance.domain.ai.*;
 import com.uf.assistance.domain.user.User;
+import com.uf.assistance.dto.ai.AIRespDto;
+import com.uf.assistance.dto.ai.AISubScriptionRespDto;
 import com.uf.assistance.handler.exception.ResourceNotFoundException;
 import com.uf.assistance.service.AIService;
 import com.uf.assistance.service.AISubscriptionService;
+import com.uf.assistance.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * AI 구독 서비스 OpenAI 구현체
@@ -27,21 +27,18 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
     private final AIRepository aiRepository;
     private final AISubscriptionRepository aiSubscriptionRepository;
     private final AIService aiService;
+    private final UserService userService;
 
     @Autowired
     public SpringAIOpenAISubscriptionService(
             AIRepository aiRepository,
             AISubscriptionRepository aiSubscriptionRepository,
-            SpringAIOpenAIService aiService) {
+            SpringAIOpenAIService aiService,
+            UserService userService) {
         this.aiRepository = aiRepository;
         this.aiSubscriptionRepository = aiSubscriptionRepository;
         this.aiService = aiService;
-    }
-
-    @Override
-    public List<AI> getAvailableAIs() {
-        logger.debug("사용 가능한 모든 공개 AI 조회");
-        return aiRepository.findAllByIsActiveTrueAndIsPublicTrue();
+        this.userService = userService;
     }
 
     @Override
@@ -63,9 +60,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
     public boolean hasUserSubscribedAI(Long userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 구독 여부 확인", userId, aiId);
 
-        User user = new User(); // 실제로는 UserRepository에서 조회해야 함
-        user.setId(userId);
-
+        User user = userService.findUserEntityById(userId);
         AI ai = getAIById(aiId);
 
         return aiSubscriptionRepository.existsByUserAndAi(user, ai);
@@ -73,18 +68,17 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
     @Override
     @Transactional
-    public AISubscription subscribe(Long userId, Long aiId) {
+    public AISubScriptionRespDto subscribe(Long userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 구독 시작", userId, aiId);
 
-        User user = new User(); // 실제로는 UserRepository에서 조회해야 함
-        user.setId(userId);
-
+        User user = userService.findUserEntityById(userId);
         AI ai = getAIById(aiId);
 
         // 이미 구독 중인지 확인
         if (aiSubscriptionRepository.existsByUserAndAi(user, ai)) {
             logger.info("사용자 ID: {}가 이미 AI ID: {}를 구독 중입니다", userId, aiId);
-            return aiSubscriptionRepository.findByUserAndAi(user, ai).orElse(null);
+            AISubscription aiSubScription = aiSubscriptionRepository.findByUserAndAi(user, ai).orElse(null);
+            return AISubScriptionRespDto.from(aiSubScription);
         }
 
         // AI 활성화 여부 확인
@@ -92,7 +86,6 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
             logger.error("비활성화된 AI ID: {}는 구독할 수 없습니다", aiId);
             throw new IllegalStateException("비활성화된 AI는 구독할 수 없습니다: " + aiId);
         }
-
         // 새 구독 생성
         AISubscription subscription = AISubscription.builder()
                 .user(user)
@@ -101,7 +94,8 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
                 .lastUsedAt(LocalDateTime.now())
                 .build();
 
-        return aiSubscriptionRepository.save(subscription);
+        AISubscription aiSubScription = aiSubscriptionRepository.save(subscription);
+        return AISubScriptionRespDto.from(aiSubScription);
     }
 
     @Override

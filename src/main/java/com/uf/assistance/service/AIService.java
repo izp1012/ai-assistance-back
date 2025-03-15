@@ -1,5 +1,11 @@
 package com.uf.assistance.service;
 
+import com.uf.assistance.domain.ai.AI;
+import com.uf.assistance.dto.ai.AIReqDto;
+import com.uf.assistance.dto.ai.AIRespDto;
+
+import java.util.List;
+
 public interface AIService {
     /**
      * AI 응답 생성
@@ -26,4 +32,16 @@ public interface AIService {
      * @return 최대 처리 가능한 토큰 수
      */
     int getMaxTokens();
+
+    /**
+     * 사용 가능한 모든 AI 조회
+     * @return AI 목록
+     */
+    List<AI> getAvailableAIs();
+
+    /**
+     * AI 생성
+     * @return AI 목록
+     */
+    AIRespDto createAI(AIReqDto aiReqDto);
 }
