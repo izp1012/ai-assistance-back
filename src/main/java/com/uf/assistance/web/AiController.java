@@ -6,10 +6,8 @@ import com.uf.assistance.dto.ai.AIReqDto;
 import com.uf.assistance.dto.ai.AIRespDto;
 import com.uf.assistance.service.AIService;
 import com.uf.assistance.util.CustomDateUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth/ai")
+@Tag(name = "AI", description = "AI CRUD 관련 API")
 public class AiController {
     private final AIService aiService;
     private final ChatModel chatModel;

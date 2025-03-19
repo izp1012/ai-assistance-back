@@ -1,6 +1,5 @@
 package com.uf.assistance.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.MessageType;
 import com.uf.assistance.dto.ResponseDto;
@@ -8,12 +7,8 @@ import com.uf.assistance.dto.message.ChatReqDto;
 import com.uf.assistance.dto.message.ChatRespDto;
 import com.uf.assistance.service.ChatService;
 import com.uf.assistance.util.CustomDateUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +33,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Controller
+@Tag(name = "채팅", description = "채팅 관련 API")
 public class ChatController {
 
     private final ChatService chatService;

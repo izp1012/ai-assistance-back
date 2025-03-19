@@ -8,6 +8,8 @@ import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.env.EnvDto;
 import com.uf.assistance.service.EnvService;
 import com.uf.assistance.util.CustomDateUtil;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/env")
+@Tag(name = "환경 설정", description = "환경 변수 셋팅 관련 API")
 public class EnvController {
 
     private static final Logger logger = LoggerFactory.getLogger(EnvController.class);

@@ -9,6 +9,7 @@ import com.uf.assistance.dto.user.UserRespDto;
 import com.uf.assistance.service.AISubscriptionService;
 import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-@Controller
+@RestController
 @RequestMapping("/api/auth/aisubsciption")
+@Tag(name = "AI", description = "AI CRUD 관련 API")
 public class AISubscriptionController {
 
     private final UserService userService;
