@@ -7,6 +7,7 @@ import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
 import com.uf.assistance.dto.user.UserReqDto;
 import com.uf.assistance.dto.user.UserReqDto.JoinReqDto;
+import com.uf.assistance.dto.user.UserRespDto;
 import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
@@ -88,9 +89,11 @@ public class UserService {
      * @param userId 사용자 ID
      * @return 사용자 엔티티
      */
-    public User findUserById(Long userId) {
-        return userRepository.findById(userId)
+    public UserRespDto findUserById(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        return UserRespDto.from(user);
     }
 
     public User findUserEntityById(Long userId) {

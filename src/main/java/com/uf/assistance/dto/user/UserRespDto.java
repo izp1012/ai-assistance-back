@@ -2,11 +2,20 @@ package com.uf.assistance.dto.user;
 
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.util.CustomDateUtil;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
+@Getter
+@AllArgsConstructor
 public class UserRespDto {
+
+    private Long id;
+    private String username;
+
+    public static UserRespDto from(User user) {
+        return new UserRespDto(user.getId(), user.getUsername());
+    }
 
     @Getter
     @Setter
