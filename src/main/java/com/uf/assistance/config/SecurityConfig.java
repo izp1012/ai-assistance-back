@@ -93,6 +93,10 @@ public class SecurityConfig {
 //        });
 //
         http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/v3/api-docs/**", // OpenAPI JSON
+                        "/api-docs/**",
+                        "/swagger-ui/**",    // Swagger UI
+                        "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
 //                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
                 .requestMatchers("/api/admin/**").permitAll() //임시로 모든 요청 허용
