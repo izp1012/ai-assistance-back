@@ -11,6 +11,7 @@ import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
 import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
 import com.uf.assistance.handler.exception.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -92,4 +93,8 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
     }
 
+    public User findUserEntityById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
 }
