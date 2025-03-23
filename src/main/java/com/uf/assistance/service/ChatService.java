@@ -85,14 +85,4 @@ public class ChatService {
 
         return new ChatRespDto(chatPersistence);
     }
-
-    public List<Chat> getMessagesByRoomId(Long roomId) {
-        return chatRepository.findByRoomIdOrderByTimestamp(roomId);
-    }
-
-    public Page<Chat> getMessagesByRoomIdWithPagination(Long roomId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").ascending());
-        return chatRepository.findByRoomId(roomId, pageable);
-    }
-
 }

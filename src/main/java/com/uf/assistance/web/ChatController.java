@@ -81,29 +81,29 @@ public class ChatController {
         return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
-    @GetMapping("/api/messages/{roomId}")
-    @ResponseBody
-    @Transactional
-    public ResponseEntity<ResponseDto<List<ChatRespDto>>> getMessages(@PathVariable Long roomId) {
-        List<Chat> messages = chatService.getMessagesByRoomId(roomId);
-
-        // Chat 객체를 DTO로 변환
-        List<ChatRespDto> chatDtos = messages.stream()
-                .map(ChatRespDto::from)
-                .collect(Collectors.toList());
-
-        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
-    }
-
-    @GetMapping("/api/messages/{roomId}/page")
-    @ResponseBody
-    @Transactional
-    public ResponseEntity<ResponseDto<Page<Chat>>> getMessagesWithPagination(
-            @PathVariable Long roomId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Page<Chat> messages = chatService.getMessagesByRoomIdWithPagination(roomId, page, size);
-        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), messages), HttpStatus.OK);
-    }
+//    @GetMapping("/api/messages/{roomId}")
+//    @ResponseBody
+//    @Transactional
+//    public ResponseEntity<ResponseDto<List<ChatRespDto>>> getMessages(@PathVariable Long roomId) {
+//        List<Chat> messages = chatService.getMessagesByRoomId(roomId);
+//
+//        // Chat 객체를 DTO로 변환
+//        List<ChatRespDto> chatDtos = messages.stream()
+//                .map(ChatRespDto::from)
+//                .collect(Collectors.toList());
+//
+//        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
+//    }
+//
+//    @GetMapping("/api/messages/{roomId}/page")
+//    @ResponseBody
+//    @Transactional
+//    public ResponseEntity<ResponseDto<Page<Chat>>> getMessagesWithPagination(
+//            @PathVariable Long roomId,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size) {
+//
+//        Page<Chat> messages = chatService.getMessagesByRoomIdWithPagination(roomId, page, size);
+//        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), messages), HttpStatus.OK);
+//    }
 }

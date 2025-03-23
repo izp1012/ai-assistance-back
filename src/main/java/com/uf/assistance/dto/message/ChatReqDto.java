@@ -46,7 +46,6 @@ public class ChatReqDto {
                 .content(content)
                 .Status(ChatStatus.SENT)
                 .type(Type)
-                .room(room)
                 .build();
     }
 

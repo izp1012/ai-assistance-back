@@ -47,7 +47,6 @@ public class WebSocketEventListener {
                     .type(MessageType.LEAVE)
                     .sender(user)
                     .content(username + "님이 퇴장하셨습니다.")
-                    .room(room)
                     .build();
             messagingTemplate.convertAndSend("/topic/public/" + roomId, chat);
         }
