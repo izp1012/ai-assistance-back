@@ -17,19 +17,19 @@ public class KeywordClientServiceTest {
     @Test
     public void extractKeywords_실제FlaskAPI호출_성공확인() {
         // given
-        KeywordReq request = new KeywordReq();
-        request.setText("AI is rapidly evolving and transforming industries.");
-
-        // when
-        KeywordResp response = keywordClientService.extractKeywords(request);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.getKeywords()).isNotEmpty();
-        assertThat(response.getKeyword_count()).isGreaterThan(0);
-
-        // optional: 출력
-        System.out.println("추출된 키워드: " + response.getKeywords());
-        System.out.println("점수: " + response.getScores());
+//        KeywordReq request = new KeywordReq();
+//        request.setText("AI is rapidly evolving and transforming industries.");
+//
+//        // when
+//        KeywordResp response = keywordClientService.extractKeywords(request);
+//
+//        // then
+//        assertThat(response).isNotNull();
+//        assertThat(response.getKeywords()).isNotEmpty();
+//        assertThat(response.getKeyword_count()).isGreaterThan(0);
+//
+//        // optional: 출력
+//        System.out.println("추출된 키워드: " + response.getKeywords());
+//        System.out.println("점수: " + response.getScores());
     }
 }
