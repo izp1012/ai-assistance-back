@@ -3,14 +3,11 @@ package com.uf.assistance.dto.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.ChatStatus;
 import com.uf.assistance.domain.chat.MessageType;
-import com.uf.assistance.domain.room.Room;
-import com.uf.assistance.domain.room.RoomRepository;
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.dto.room.RoomReqDTO;
-import com.uf.assistance.dto.room.RoomRespDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,7 +24,7 @@ public class ChatReqDto {
     private String content;
     private MessageType type;
     private LocalDateTime timestamp;
-    private Room room;
+    private AISubscription aiSubscription;
 
     @JsonCreator
     public ChatReqDto(
@@ -39,13 +36,14 @@ public class ChatReqDto {
         this.type = type;
     }
 
-    public static Chat toEntity(User user, String content, Room room, MessageType Type) {
+    public static Chat toEntity(User user, String content, AISubscription aiSubscription, MessageType Type) {
 
         return Chat.builder()
                 .sender(user)
                 .content(content)
                 .Status(ChatStatus.SENT)
                 .type(Type)
+                .aiSubscription(aiSubscription)
                 .build();
     }
 

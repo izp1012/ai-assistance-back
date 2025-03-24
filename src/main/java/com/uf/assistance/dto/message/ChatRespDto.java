@@ -2,12 +2,9 @@ package com.uf.assistance.dto.message;
 
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.MessageType;
-import com.uf.assistance.domain.user.User;
-import com.uf.assistance.util.CustomDateUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 
