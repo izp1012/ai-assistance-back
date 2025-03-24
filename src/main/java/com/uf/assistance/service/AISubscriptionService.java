@@ -1,7 +1,9 @@
 package com.uf.assistance.service;
 
-import com.uf.assistance.domain.ai.AI;
+import com.uf.assistance.domain.ai.AISubscription;
+import com.uf.assistance.domain.ai.CustomAI;
 import com.uf.assistance.dto.ai.AISubScriptionRespDto;
+import com.uf.assistance.dto.ai.CustomAIRespDto;
 
 import java.util.List;
 import java.util.Map;
@@ -12,19 +14,13 @@ import java.util.Map;
  */
 public interface AISubscriptionService {
 
+    AISubscription getAISubScriptionById(Long subscriptionId);
     /**
      * 특정 사용자가 구독한 AI 목록 조회
      * @param userId 사용자 ID
      * @return 구독한 AI 목록
      */
-    List<AI> getSubscribedAIs(Long userId);
-
-    /**
-     * 특정 AI 조회
-     * @param aiId AI ID
-     * @return AI 정보
-     */
-    AI getAIById(Long aiId);
+    List<CustomAIRespDto> getSubscribedAIs(Long userId);
 
     /**
      * 사용자의 AI 구독 여부 확인
@@ -55,7 +51,7 @@ public interface AISubscriptionService {
      * @param variables 프롬프트 변수
      * @return AI 응답
      */
-    String generateStandaloneAIResponse(AI ai, Map<String, String> variables);
+    String generateStandaloneAIResponse(CustomAI ai, Map<String, String> variables);
 
     /**
      * 구독 사용 기록 업데이트

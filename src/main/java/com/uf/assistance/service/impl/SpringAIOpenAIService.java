@@ -1,10 +1,15 @@
 package com.uf.assistance.service.impl;
 
-import com.uf.assistance.domain.ai.AI;
-import com.uf.assistance.domain.ai.AIRepository;
+import com.uf.assistance.domain.ai.BaseAI;
+import com.uf.assistance.domain.ai.BaseAIRepository;
+import com.uf.assistance.domain.ai.CustomAI;
+import com.uf.assistance.domain.ai.CustomAIRepository;
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.dto.ai.AIReqDto;
-import com.uf.assistance.dto.ai.AIRespDto;
+import com.uf.assistance.dto.ai.BaseAIReqDto;
+import com.uf.assistance.dto.ai.BaseAIRespDto;
+import com.uf.assistance.dto.ai.CustomAIReqDto;
+import com.uf.assistance.dto.ai.CustomAIRespDto;
+import com.uf.assistance.handler.exception.ResourceNotFoundException;
 import com.uf.assistance.service.AIService;
 import com.uf.assistance.service.UserService;
 import org.slf4j.Logger;
@@ -30,23 +35,29 @@ import java.util.List;
 public class SpringAIOpenAIService implements AIService {
     private static final Logger logger = LoggerFactory.getLogger(SpringAIOpenAIService.class);
 
-    private final AIRepository aiRepository;
+    private final BaseAIRepository baseAiRepository;
+    private final CustomAIRepository customAiRepository;
     private final ChatModel chatModel;
     private final OpenAiChatOptions openAiChatOptions;
     private final String apiKey;
     private final int maxTokens;
+    private final UserService userService;
+
 
     public SpringAIOpenAIService(
-            AIRepository aiRepository,
+            BaseAIRepository baseAiRepository,
+            CustomAIRepository customAiRepository,
             ChatModel chatModel,
             OpenAiChatOptions openAiChatOptions,
             @Value("${spring.ai.openai.api-key:#{null}}") String apiKey,
-            @Value("${openai.max.tokens:4096}") int maxTokens) {
-        this.aiRepository = aiRepository;
+            @Value("${openai.max.tokens:4096}") int maxTokens, UserService userService) {
+        this.baseAiRepository = baseAiRepository;
+        this.customAiRepository = customAiRepository;
         this.chatModel = chatModel;
         this.openAiChatOptions = openAiChatOptions;
         this.apiKey = apiKey;
         this.maxTokens = maxTokens;
+        this.userService = userService;
     }
 
     @Override
@@ -75,6 +86,9 @@ public class SpringAIOpenAIService implements AIService {
             // 응답 처리
             return response.getResult().getOutput().getText();
 
+        } catch (NullPointerException e){
+            logger.error("OpenAI API 호출 중 NPE 오류 발생: {}", e.getMessage(), e);
+            return "AI 서비스 NPE 오류 발생: " + e.getMessage();
         } catch (Exception e) {
             logger.error("OpenAI API 호출 중 오류 발생: {}", e.getMessage(), e);
             return "AI 서비스 오류: " + e.getMessage();
@@ -84,6 +98,23 @@ public class SpringAIOpenAIService implements AIService {
     @Override
     public boolean isAvailable() {
         return StringUtils.hasText(apiKey);
+    }
+
+
+    @Override
+    public BaseAI getBaseAIById(Long baseAIId) {
+        logger.debug("BaseAI ID: {} 조회", baseAIId);
+        BaseAI baseAI = baseAiRepository.findById(baseAIId)
+                .orElseThrow(() -> new ResourceNotFoundException("Base AI", "id", baseAIId));
+        return baseAI;
+    }
+
+    @Override
+    public CustomAI getCustomAIById(Long customAIId) {
+        logger.debug("CustomAI ID: {} 조회", customAIId);
+        CustomAI customAI = customAiRepository.findById(customAIId)
+                .orElseThrow(() -> new ResourceNotFoundException("AI", "id", customAIId));
+        return customAI;
     }
 
     @Override
@@ -97,14 +128,32 @@ public class SpringAIOpenAIService implements AIService {
     }
 
     @Override
-    public List<AI> getAvailableAIs() {
-        logger.debug("사용 가능한 모든 공개 AI 조회");
-        return aiRepository.findAllByIsActiveTrueAndIsPublicTrue();
+    public List<BaseAI> getAvailableBaseAIs() {
+        logger.debug("사용 가능한 모든 공개 BaseAI 조회");
+        return baseAiRepository.findAllByActiveTrue();
     }
 
     @Override
-    public AIRespDto createAI(AIReqDto aiReqDto) {
-        AI ai = aiRepository.save(AIReqDto.toEntity(aiReqDto));
-        return AIRespDto.from(ai);
+    public List<CustomAI> getAvailableCustomAIs() {
+        logger.debug("사용 가능한 모든 공개 CustomAI 조회");
+        return customAiRepository.findAllByActiveTrueAndHiddenTrue();
+    }
+
+    @Override
+    public BaseAIRespDto createBaseAI(BaseAIReqDto baseAIReqDto) {
+        User user = userService.findUserEntityById(baseAIReqDto.getUserId());
+
+        BaseAI baseAI = baseAiRepository.save(BaseAIReqDto.toEntity(baseAIReqDto, user));
+        return BaseAIRespDto.from(baseAI);
+    }
+
+    @Override
+    public CustomAIRespDto createCustomAI(CustomAIReqDto customAIReqDto) {
+        BaseAI baseAI = this.getBaseAIById(customAIReqDto.getBaseAiId());
+
+        User user = userService.findUserEntityById(customAIReqDto.getUserId());
+
+        CustomAI customAI = customAiRepository.save(customAIReqDto.toEntity(customAIReqDto, baseAI, user));
+        return CustomAIRespDto.from(customAI);
     }
 }

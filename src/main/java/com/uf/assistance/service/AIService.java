@@ -1,8 +1,11 @@
 package com.uf.assistance.service;
 
-import com.uf.assistance.domain.ai.AI;
-import com.uf.assistance.dto.ai.AIReqDto;
-import com.uf.assistance.dto.ai.AIRespDto;
+import com.uf.assistance.domain.ai.BaseAI;
+import com.uf.assistance.domain.ai.CustomAI;
+import com.uf.assistance.dto.ai.BaseAIReqDto;
+import com.uf.assistance.dto.ai.BaseAIRespDto;
+import com.uf.assistance.dto.ai.CustomAIReqDto;
+import com.uf.assistance.dto.ai.CustomAIRespDto;
 
 import java.util.List;
 
@@ -22,6 +25,20 @@ public interface AIService {
     boolean isAvailable();
 
     /**
+     * 특정 BaseAI 조회
+     * @param baseAIId AI ID
+     * @return AI 정보
+     */
+    BaseAI getBaseAIById(Long baseAIId);
+
+    /**
+     * 특정 CustomAI 조회
+     * @param customAIId AI ID
+     * @return AI 정보
+     */
+    CustomAI getCustomAIById(Long customAIId);
+
+    /**
      * 공급자 이름 반환
      * @return AI 서비스 공급자 이름
      */
@@ -34,14 +51,25 @@ public interface AIService {
     int getMaxTokens();
 
     /**
-     * 사용 가능한 모든 AI 조회
+     * 사용 가능한 모든 BaseAI 조회
      * @return AI 목록
      */
-    List<AI> getAvailableAIs();
+    List<BaseAI> getAvailableBaseAIs();
 
     /**
-     * AI 생성
+     * 사용 가능한 모든 CustomAI 조회
      * @return AI 목록
      */
-    AIRespDto createAI(AIReqDto aiReqDto);
+    List<CustomAI> getAvailableCustomAIs();
+    /**
+     * AI 생성
+     * @return 생성한 AI 정보
+     */
+    BaseAIRespDto createBaseAI(BaseAIReqDto aiReqDto);
+
+    /**
+     * CustomAI 생성
+     * @return 생성한 AI 정보
+     */
+    CustomAIRespDto createCustomAI(CustomAIReqDto aiReqDto);
 }

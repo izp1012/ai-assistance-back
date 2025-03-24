@@ -1,9 +1,9 @@
 package com.uf.assistance.service;
 
+import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.ChatRepository;
 import com.uf.assistance.domain.chat.MessageType;
-import com.uf.assistance.domain.room.Room;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.message.ChatReqDto;
 import com.uf.assistance.dto.message.ChatRespDto;
@@ -36,8 +36,7 @@ public class ChatService {
     private final ChatModel chatModel;
     private final ChatRepository chatRepository;
     private final UserService userService;
-    private final RoomService roomService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final AISubscriptionService aiSubscriptionService;
     private final OpenAiChatOptions openAiChatOptions;
 
     // 시스템 메시지 정의
@@ -47,11 +46,11 @@ public class ChatService {
             항상 예의 바르게 대응하고, 유용한 정보를 제공하세요.
             """;
     @Transactional
-    public ChatRespDto sendMessageAI(ChatReqDto chatReqDto, Long roomId, MessageType messageType) {
+    public ChatRespDto sendMessageAI(ChatReqDto chatReqDto, Long aiSubscriptionId, MessageType messageType) {
 
         User user = userService.findUserbyUsername("GPT");
 
-        Room room = roomService.getRoomById(roomId);
+        AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(aiSubscriptionId);
 
         // 메시지 준비
         List<Message> messages = new ArrayList<>();
@@ -66,7 +65,7 @@ public class ChatService {
 
         String rtnResult = responseAI.getResult().getOutput().getText();
 
-        Chat chat = ChatReqDto.toEntity(user, rtnResult, room, messageType);
+        Chat chat = ChatReqDto.toEntity(user, rtnResult, aiSubscription, messageType);
 
         Chat chatPersistence = chatRepository.save(chat);
 
@@ -74,15 +73,26 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatRespDto sendMessage(ChatReqDto chatReqDto, Long roomId, MessageType messageType) {
+    public ChatRespDto sendMessage(ChatReqDto chatReqDto, Long aiSubscriptionId, MessageType messageType) {
 
         User user = userService.findUserbyUsername(chatReqDto.getSender());
 
-        Room room = roomService.getRoomById(roomId);
-        Chat chat = ChatReqDto.toEntity(user, chatReqDto.getContent(), room, messageType);
+        AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(aiSubscriptionId);
+
+        Chat chat = ChatReqDto.toEntity(user, chatReqDto.getContent(), aiSubscription, messageType);
 
         Chat chatPersistence = chatRepository.save(chat);
 
         return new ChatRespDto(chatPersistence);
     }
+
+    public List<Chat> getMessagesByAiId(Long aiSubscriptionId) {
+        return chatRepository.findByAiSubscriptionIdOrderByTimestamp(aiSubscriptionId);
+    }
+
+    public Page<Chat> getMessagesByAiIdWithPagination(Long aiSubscriptionId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").ascending());
+        return chatRepository.findByAiSubscriptionId(aiSubscriptionId, pageable);
+    }
+
 }
