@@ -28,6 +28,7 @@ public class CustomAIRespDto {
         dto.setName(customAI.getName());
         dto.setDescription(customAI.getDescription());
         dto.setBasePrompt(customAI.getBaseAI().getBasePrompt());
+        dto.setCustomPrompt(customAI.getCustomPrompt());
         dto.setDeveloperName(customAI.getCreatedBy().getUsername());
         dto.setActive(customAI.isActive());
         dto.setHidden(customAI.isHidden());

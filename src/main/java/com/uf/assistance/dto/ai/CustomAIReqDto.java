@@ -27,6 +27,7 @@ public class CustomAIReqDto {
         return CustomAI.builder()
                 .name(aiReqDto.getName())
                 .description(aiReqDto.getDescription())
+                .customPrompt(aiReqDto.getCustomPrompt())
                 .imageUrl(aiReqDto.getImageUrl())
                 .createdBy(user)
                 .baseAI(baseAI)
