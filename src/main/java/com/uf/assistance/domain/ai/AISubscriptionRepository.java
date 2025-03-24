@@ -20,22 +20,22 @@ public interface AISubscriptionRepository extends JpaRepository<AISubscription, 
      * @param user 사용자
      * @return 구독한 AI 목록
      */
-    @Query("SELECT s.ai FROM AISubscription s WHERE s.user = :user AND s.ai.isActive = true")
-    List<AI> findAIsByUser(@Param("user") User user);
+    @Query("SELECT s.customAI FROM AISubscription s WHERE s.user = :user AND s.customAI.active = true")
+    List<CustomAI> findAIsByUser(@Param("user") User user);
 
     /**
      * 사용자의 특정 AI 구독 정보 조회
      * @param user 사용자
-     * @param ai AI
+     * @param customAI AI
      * @return 구독 정보
      */
-    Optional<AISubscription> findByUserAndAi(User user, AI ai);
+    Optional<AISubscription> findByUserAndCustomAI(User user, CustomAI customAI);
 
     /**
      * 사용자의 특정 AI 구독 여부 확인
      * @param user 사용자
-     * @param ai AI
+     * @param customAI AI
      * @return 구독 여부
      */
-    boolean existsByUserAndAi(User user, AI ai);
+    boolean existsByUserAndCustomAI(User user, CustomAI customAI);
 }
