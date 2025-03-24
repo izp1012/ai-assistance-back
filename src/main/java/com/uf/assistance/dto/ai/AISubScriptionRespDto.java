@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
 public class AISubScriptionRespDto {
     private Long id;
     private String username;
-    private AIRespDto aiRespDto;
+    private CustomAIRespDto customAIRespDto;
     private LocalDateTime createdAt;
 
     public static AISubScriptionRespDto from(AISubscription aiSubscription) {
         return AISubScriptionRespDto.builder()
                 .id(aiSubscription.getId())
-                .aiRespDto(AIRespDto.from(aiSubscription.getAi()))
+                .customAIRespDto(CustomAIRespDto.from(aiSubscription.getCustomAI()))
                 .username(aiSubscription.getUser().getUsername())
                 .createdAt(aiSubscription.getSubscribedAt())
                 .build();
