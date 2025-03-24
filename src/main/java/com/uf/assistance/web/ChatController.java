@@ -93,12 +93,17 @@ public class ChatController {
     @GetMapping("/api/messages/{subscriptionId}/page")
     @ResponseBody
     @Transactional
-    public ResponseEntity<ResponseDto<Page<Chat>>> getMessagesWithPagination(
+    public ResponseEntity<ResponseDto<Page<ChatRespDto>>> getMessagesWithPagination(
             @PathVariable Long subscriptionId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Page<Chat> messages = chatService.getMessagesByAiIdWithPagination(subscriptionId, page, size);
-        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), messages), HttpStatus.OK);
+
+        // Chat 엔티티를 ChatRespDto로 변환
+        Page<ChatRespDto> chatDtos = messages.map(ChatRespDto::from);
+
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
     }
 }

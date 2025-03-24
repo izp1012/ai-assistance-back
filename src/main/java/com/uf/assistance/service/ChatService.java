@@ -91,7 +91,7 @@ public class ChatService {
     }
 
     public Page<Chat> getMessagesByAiIdWithPagination(Long aiSubscriptionId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").ascending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
         return chatRepository.findByAiSubscriptionId(aiSubscriptionId, pageable);
     }
 
