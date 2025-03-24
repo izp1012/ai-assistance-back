@@ -1,12 +1,10 @@
 package com.uf.assistance.event;
 
+import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.MessageType;
-import com.uf.assistance.domain.room.Room;
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.dto.message.ChatReqDto;
-import com.uf.assistance.service.ChatService;
-import com.uf.assistance.service.RoomService;
+import com.uf.assistance.service.AISubscriptionService;
 import com.uf.assistance.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -21,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
     private final SimpMessageSendingOperations messagingTemplate;
-    private final RoomService roomService;
+    private final AISubscriptionService aiSubscriptionService;
     private final UserService userService;
 
     @EventListener
@@ -29,12 +27,11 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
-        String roomIdStr = (String) headerAccessor.getSessionAttributes().get("roomId");
+        String aiSubscriptionIdStr = (String) headerAccessor.getSessionAttributes().get("aiSubscriptionId");
 
-        if (username != null && roomIdStr != null) {
-            Long roomId = Long.parseLong(roomIdStr);
-            Room room = roomService.getRoomById(roomId);
-
+        if (username != null && aiSubscriptionIdStr != null) {
+            Long aiSubscriptionId = Long.parseLong(aiSubscriptionIdStr);
+            AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(aiSubscriptionId);
             User user = userService.findUserbyUsername(username);
 
             if (user == null) {
@@ -47,8 +44,9 @@ public class WebSocketEventListener {
                     .type(MessageType.LEAVE)
                     .sender(user)
                     .content(username + "님이 퇴장하셨습니다.")
+                    .aiSubscription(aiSubscription)
                     .build();
-            messagingTemplate.convertAndSend("/topic/public/" + roomId, chat);
+            messagingTemplate.convertAndSend("/topic/public/" + aiSubscriptionId, chat);
         }
     }
 }
