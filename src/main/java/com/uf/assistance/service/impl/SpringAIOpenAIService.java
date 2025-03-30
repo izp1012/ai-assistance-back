@@ -1,16 +1,18 @@
 package com.uf.assistance.service.impl;
 
-import com.uf.assistance.domain.ai.BaseAI;
 import com.uf.assistance.domain.ai.BaseAIRepository;
+import com.uf.assistance.domain.ai.BaseAI;
 import com.uf.assistance.domain.ai.CustomAI;
 import com.uf.assistance.domain.ai.CustomAIRepository;
 import com.uf.assistance.domain.user.User;
+import com.uf.assistance.domain.user.UserRepository;
 import com.uf.assistance.dto.ai.BaseAIReqDto;
 import com.uf.assistance.dto.ai.BaseAIRespDto;
 import com.uf.assistance.dto.ai.CustomAIReqDto;
 import com.uf.assistance.dto.ai.CustomAIRespDto;
 import com.uf.assistance.handler.exception.ResourceNotFoundException;
 import com.uf.assistance.service.AIService;
+import com.uf.assistance.service.FileStorageService;
 import com.uf.assistance.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,8 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +46,7 @@ public class SpringAIOpenAIService implements AIService {
     private final String apiKey;
     private final int maxTokens;
     private final UserService userService;
+    private final FileStorageService fileStorageService;
 
 
     public SpringAIOpenAIService(
@@ -50,7 +55,9 @@ public class SpringAIOpenAIService implements AIService {
             ChatModel chatModel,
             OpenAiChatOptions openAiChatOptions,
             @Value("${spring.ai.openai.api-key:#{null}}") String apiKey,
-            @Value("${openai.max.tokens:4096}") int maxTokens, UserService userService) {
+            @Value("${openai.max.tokens:4096}") int maxTokens, UserService userService,
+            FileStorageService fileStorageService
+    ) {
         this.baseAiRepository = baseAiRepository;
         this.customAiRepository = customAiRepository;
         this.chatModel = chatModel;
@@ -58,6 +65,7 @@ public class SpringAIOpenAIService implements AIService {
         this.apiKey = apiKey;
         this.maxTokens = maxTokens;
         this.userService = userService;
+        this.fileStorageService = fileStorageService;
     }
 
     @Override
@@ -148,12 +156,27 @@ public class SpringAIOpenAIService implements AIService {
     }
 
     @Override
-    public CustomAIRespDto createCustomAI(CustomAIReqDto customAIReqDto) {
+    public CustomAIRespDto createCustomAI(CustomAIReqDto customAIReqDto, MultipartFile file) {
         BaseAI baseAI = this.getBaseAIById(customAIReqDto.getBaseAiId());
 
         User user = userService.findUserEntityById(customAIReqDto.getUserId());
 
-        CustomAI customAI = customAiRepository.save(customAIReqDto.toEntity(customAIReqDto, baseAI, user));
+        // 이미지 처리
+        String imageUrl = null;
+        if (file != null && !file.isEmpty()) {
+            String fileName = fileStorageService.storeFile(file);
+
+            // 이미지 URL 생성
+            imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/home/ubuntu/youf/file/")
+                    .path(fileName)
+                    .toUriString();
+        } else {
+            // 기본 이미지 URL 사용 (이미지가 없는 경우)
+            imageUrl = customAIReqDto.getImageUrl();
+        }
+
+        CustomAI customAI = customAiRepository.save(customAIReqDto.toEntity(customAIReqDto, baseAI, user, imageUrl));
         return CustomAIRespDto.from(customAI);
     }
 }

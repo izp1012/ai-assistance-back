@@ -6,6 +6,7 @@ import com.uf.assistance.dto.ai.BaseAIReqDto;
 import com.uf.assistance.dto.ai.BaseAIRespDto;
 import com.uf.assistance.dto.ai.CustomAIReqDto;
 import com.uf.assistance.dto.ai.CustomAIRespDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -71,5 +72,5 @@ public interface AIService {
      * CustomAI 생성
      * @return 생성한 AI 정보
      */
-    CustomAIRespDto createCustomAI(CustomAIReqDto aiReqDto);
+    CustomAIRespDto createCustomAI(CustomAIReqDto aiReqDto, MultipartFile file);
 }

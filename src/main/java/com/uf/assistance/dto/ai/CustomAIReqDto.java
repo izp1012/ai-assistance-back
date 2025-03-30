@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Builder
@@ -15,20 +16,21 @@ import lombok.NoArgsConstructor;
 public class CustomAIReqDto {
     private String name;
     private String description;
-    private String imageUrl;
+    private MultipartFile imageFile; // MultipartFile로 변경
+    private String imageUrl; // 저장된 파일 경로를 저장할 필드
     private Long baseAiId;
     private String customPrompt;
     private Long userId;
     private boolean active;
     private boolean hidden;
 
-    public static CustomAI toEntity(CustomAIReqDto aiReqDto, BaseAI baseAI, User user) {
+    public static CustomAI toEntity(CustomAIReqDto aiReqDto, BaseAI baseAI, User user, String imageUrl) {
 
         return CustomAI.builder()
                 .name(aiReqDto.getName())
                 .description(aiReqDto.getDescription())
                 .customPrompt(aiReqDto.getCustomPrompt())
-                .imageUrl(aiReqDto.getImageUrl())
+                .imageUrl(imageUrl)
                 .createdBy(user)
                 .baseAI(baseAI)
                 .active(aiReqDto.isActive())

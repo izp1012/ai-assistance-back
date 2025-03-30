@@ -8,15 +8,20 @@ import com.uf.assistance.dto.ai.BaseAIRespDto;
 import com.uf.assistance.dto.ai.CustomAIReqDto;
 import com.uf.assistance.dto.ai.CustomAIRespDto;
 import com.uf.assistance.service.AIService;
+import com.uf.assistance.service.FileStorageService;
 import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,6 +34,7 @@ import java.util.List;
 public class AiController {
     private final AIService aiService;
     private final UserService userService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping("/base/all")
     @Transactional(readOnly = true)
@@ -60,14 +66,24 @@ public class AiController {
 
         BaseAIRespDto baseAIRespDto = aiService.createBaseAI(baseAIReqDto);
 
-        return new ResponseEntity<>(new ResponseDto<>(1, "AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), baseAIRespDto), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "Base AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), baseAIRespDto), HttpStatus.OK);
     }
 
-    @PostMapping("/custom/create")
-    public ResponseEntity<?> createCustomAI(@RequestBody CustomAIReqDto customAIReqDto) {
+    @PostMapping(value = "/custom/create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> createCustomAI(@RequestPart("jsonData") CustomAIReqDto customAIReqDto, @RequestPart("image") MultipartFile file) {
+        CustomAIRespDto customAIRespDto = aiService.createCustomAI(customAIReqDto, file);
 
-        CustomAIRespDto customAIRespDto = aiService.createCustomAI(customAIReqDto);
+        return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
+    }
 
-        return new ResponseEntity<>(new ResponseDto<>(1, "AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
+
+    @GetMapping("/image/{filename}")
+    public ResponseEntity<Resource> downloadImage(@PathVariable String filename) {
+        Resource resource = fileStorageService.loadFileAsResource(filename);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG) // 이미지 타입에 맞게 수정
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
     }
 }

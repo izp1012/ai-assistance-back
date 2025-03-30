@@ -1,40 +1,42 @@
 package com.uf.assistance.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.uf.assistance.domain.ai.AIRepository;
+import com.uf.assistance.domain.ai.BaseAIRepository;
+import com.uf.assistance.domain.ai.CustomAIRepository;
+import com.uf.assistance.service.FileStorageService;
+import com.uf.assistance.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class SpringAIOpenAIServiceTest {
 
     @Mock
-    private AIRepository aiRepository;
+    private BaseAIRepository baseAiRepository;
+
+    @Mock
+    private CustomAIRepository customAIRepository;
 
     @Mock
     private ChatModel chatModel;
@@ -51,12 +53,17 @@ public class SpringAIOpenAIServiceTest {
     @Mock
     private AssistantMessage assistantMessage;
 
+    @Mock
+    private UserService userService;
+
     private SpringAIOpenAIService aiService;
+
+    private FileStorageService fileStorageService;
 
     @BeforeEach
     void setUp() {
         // 명시적으로 서비스 객체 생성 (생성자 주입 방식을 사용)
-        aiService = new SpringAIOpenAIService(aiRepository, chatModel, openAiChatOptions, "test-api-key", 4096);
+        aiService = new SpringAIOpenAIService(baseAiRepository, customAIRepository, chatModel, openAiChatOptions, "test-api-key", 4096, userService, fileStorageService);
     }
 
     @Test
