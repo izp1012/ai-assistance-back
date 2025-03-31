@@ -34,15 +34,8 @@ spring:
   output:
     ansi:
       enabled: always
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-  api-docs:
-    path: /api-docs
-
 file:
-  upload-dir: /home/ubuntu/youf/file
+  upload-dir: /home/ubuntu/youf/file  # 원하는 저장 경로 설정
 
 logging:
   level:
