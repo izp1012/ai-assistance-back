@@ -1,6 +1,9 @@
 package com.uf.assistance.web;
 
+import com.uf.assistance.domain.ai.AISubscription;
+import com.uf.assistance.domain.ai.AISubscriptionRepository;
 import com.uf.assistance.domain.chat.Chat;
+import com.uf.assistance.domain.chat.ChatRepository;
 import com.uf.assistance.domain.chat.MessageType;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.message.ChatReqDto;
@@ -8,7 +11,6 @@ import com.uf.assistance.dto.message.ChatRespDto;
 import com.uf.assistance.service.ChatService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,20 +21,31 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+
+import jakarta.validation.Valid;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-@RestController
+@Controller
 @Tag(name = "채팅", description = "채팅 관련 API")
 public class ChatController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AISubscriptionRepository aiSubscriptionRepository;
+    private final ChatRepository chatRepository;
 
     @MessageMapping("/chat.sendMessageAI/{subscriptionId}")
     @SendTo("/topic/public/ai/{subscriptionId}")
@@ -67,7 +80,7 @@ public class ChatController {
     @MessageMapping("/chat.addUser/{subscriptionId}")
     @SendTo("/topic/public/{subscriptionId}")
     public ResponseEntity<?> addUser(@Payload ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId
-                , SimpMessageHeaderAccessor headerAccessor) {
+            , SimpMessageHeaderAccessor headerAccessor) {
         // Add username in web socket session
         headerAccessor.getSessionAttributes().put("username", chatReqDto.getSender());
         headerAccessor.getSessionAttributes().put("subscriptionIdsubscriptionId", subscriptionId.toString());
@@ -76,7 +89,7 @@ public class ChatController {
         return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
-    @GetMapping("/api/messages/{subscriptionId}")
+    @GetMapping("/api/messages/subscription/{subscriptionId}")
     @ResponseBody
     @Transactional
     public ResponseEntity<ResponseDto<List<ChatRespDto>>> getMessages(@PathVariable Long subscriptionId) {
@@ -88,6 +101,21 @@ public class ChatController {
                 .collect(Collectors.toList());
 
         return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
+    }
+
+    @GetMapping("/api/messages/user/{userId}")
+    @ResponseBody
+    @Transactional
+    @Tag(name ="사용자별, 구독한 AI 들의 마지막 채팅 가져오기")
+    public ResponseEntity<ResponseDto<List<ChatRespDto>>> getLastMessagesbyUserID(@PathVariable Long userId) {
+
+        List<Chat> messages = chatService.getLastMessagesForUser(userId);
+        List<ChatRespDto> chatRespDtoList = new ArrayList<>();
+        for(Chat chat : messages){
+            chatRespDtoList.add(ChatRespDto.from(chat));
+        }
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "사용자별 AI 별 마지막 채팅 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoList), HttpStatus.OK);
     }
 
     @GetMapping("/api/messages/{subscriptionId}/page")

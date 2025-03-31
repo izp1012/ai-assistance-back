@@ -18,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -90,9 +89,16 @@ public class ChatService {
         return chatRepository.findByAiSubscriptionIdOrderByTimestamp(aiSubscriptionId);
     }
 
+    public List<Chat> getMessagesByuserId(Long userId) {
+        return chatRepository.findBySenderIdOrderByTimestamp(userId);
+    }
+
     public Page<Chat> getMessagesByAiIdWithPagination(Long aiSubscriptionId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").ascending());
         return chatRepository.findByAiSubscriptionId(aiSubscriptionId, pageable);
     }
 
+    public List<Chat> getLastMessagesForUser(Long userId) {
+        return chatRepository.findLatestMessageByCustomAiIdAndSender(userId);
+    }
 }
