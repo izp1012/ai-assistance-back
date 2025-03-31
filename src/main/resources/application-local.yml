@@ -7,28 +7,21 @@ server:
 
 spring:
   datasource:
-    #    url: jdbc:h2:mem:test;MODE=MySQL
-    #    driver-class-name: org.h2.Driver
-    #    username: sa
-    #    password:
-    #  h2:
-    #    console:
-    #      enabled: true
-    url: jdbc:postgresql://localhost:5432/postgres
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: 1234
-  hikari:
-    connection-timeout: 30000       # 연결 타임아웃: 30초
-    maximum-pool-size: 10           # 최대 연결 풀 크기
-    minimum-idle: 5                 # 최소 유휴 연결 수
-    idle-timeout: 300000            # 유휴 연결 타임아웃: 5분
-    max-lifetime: 1200000           # 연결 최대 수명: 20분
-    connection-test-query: SELECT 1 # 연결 테스트 쿼리
+#    url: jdbc:postgresql://localhost:5432/postgres
+#    driver-class-name: org.postgresql.Driver
+#    username: postgres
+#    password: 1234
+      url: jdbc:h2:mem:test;MODE=MySQL
+      driver-class-name: org.h2.Driver
+      username: sa
+      password:
+  h2:
+    console:
+      enabled: true
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       '[hibernate.default_batch_fetch_size]': 100
       '[hibernate.format_sql]': true
@@ -39,35 +32,10 @@ spring:
   ai:
     openai:
       api-key: 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
+      api-url : https://api.openai.com/v1/chat/completions
     chat:
       options:
         model: gpt-4o
-  security:
-    oauth2:
-      client:
-        registration:
-          naver :
-            client-id: ISdAotWdEG_JssRi4zNt #클라이언트-id
-            client-secret: cbXjStxUic #클라이언트 비밀번호
-            redirect-uri: http://localhost:3000/chatapp
-            scope:
-              - name
-              - profile
-              - email
-            authorization-grant-type: authorization_code
-        provider:
-          naver :
-            authorization-uri: https://nid.naver.com/oauth2.0/authorize
-            token-uri: https://nid.naver.com/oauth2.0/token
-            user-info-uri: https://openapi.naver.com/v1/nid/me
-            user-name-attribute: response
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-  api-docs:
-    path: /api-docs
-
 logging:
   level:
     com.uf.assistance: DEBUG
