@@ -5,7 +5,6 @@ import com.uf.assistance.domain.ai.BaseAI;
 import com.uf.assistance.domain.ai.CustomAI;
 import com.uf.assistance.domain.ai.CustomAIRepository;
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.domain.user.UserRepository;
 import com.uf.assistance.dto.ai.BaseAIReqDto;
 import com.uf.assistance.dto.ai.BaseAIRespDto;
 import com.uf.assistance.dto.ai.CustomAIReqDto;
@@ -144,7 +143,7 @@ public class SpringAIOpenAIService implements AIService {
     @Override
     public List<CustomAI> getAvailableCustomAIs() {
         logger.debug("사용 가능한 모든 공개 CustomAI 조회");
-        return customAiRepository.findAllByActiveTrueAndHiddenTrue();
+        return customAiRepository.findAllByActiveTrueAndHiddenFalse();
     }
 
     @Override

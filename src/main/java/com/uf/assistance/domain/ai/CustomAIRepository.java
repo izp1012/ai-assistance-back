@@ -25,7 +25,7 @@ public interface CustomAIRepository extends JpaRepository<CustomAI, Long> {
      * 공개된 활성화 AI 목록 조회
      * @return 공개된 활성화 AI 목록
      */
-    List<CustomAI> findAllByActiveTrueAndHiddenTrue();
+    List<CustomAI> findAllByActiveTrueAndHiddenFalse();
 
     /**
      * 특정 사용자가 만든 AI 목록 조회
