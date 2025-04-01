@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface ChatKeywordRepository extends JpaRepository<ChatKeyword, Long> {
     List<ChatKeyword> findByChat(Chat chat);
-    List<ChatKeyword> findByKeyword(KeywordEmbedding keyword);
 }
