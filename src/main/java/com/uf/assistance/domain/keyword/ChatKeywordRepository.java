@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ChatKeywordRepository extends JpaRepository<ChatKeyword, Long> {
     List<ChatKeyword> findByChat(Chat chat);
+    List<ChatKeyword> findByInterestId(Long interestId);
+    boolean existsByChatAndInterestId(Chat chat, Long interestId);
 }

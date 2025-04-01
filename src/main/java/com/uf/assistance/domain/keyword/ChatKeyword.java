@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         name = "chat_keyword",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"chat_id", "keyword_id"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"chat_id", "interest_id"})
 )
 @Getter
 @Setter
@@ -26,9 +26,10 @@ public class ChatKeyword {
     @JoinColumn(name = "chat_id", nullable = false)
     private Chat chat;
 
+    // Interest는 이제 JPA 엔티티이므로 그대로 ManyToOne 관계 유지
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "keyword_id", nullable = false)
-    private KeywordEmbedding keyword;
+    @JoinColumn(name = "interest_id", nullable = false)
+    private Interest interest;
 
     @Column(nullable = false, updatable = false)
     private final LocalDateTime linkedAt = LocalDateTime.now();
