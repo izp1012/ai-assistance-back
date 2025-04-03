@@ -1,9 +1,11 @@
 package com.uf.assistance.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.keyword.ChatKeyword;
 import com.uf.assistance.domain.keyword.ChatKeywordRepository;
 import com.uf.assistance.domain.keyword.Interest;
+import com.uf.assistance.domain.keyword.InterestRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,11 +28,17 @@ public class ChatKeywordServiceTest {
     @Mock
     private VectorInterestService vectorInterestService;
 
+    @Mock
+    private UserInterestService userInterestService;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     private ChatKeywordService chatKeywordService;
 
     @BeforeEach
     void setUp() {
-        chatKeywordService = new ChatKeywordService(chatKeywordRepository, vectorInterestService);
+        chatKeywordService = new ChatKeywordService(chatKeywordRepository, vectorInterestService, userInterestService, objectMapper);
     }
 
     @Test
@@ -44,7 +52,6 @@ public class ChatKeywordServiceTest {
         Interest interest = Interest.builder()
                 .id(2L)
                 .keyword("테스트")
-                .count(1)
                 .vector(new float[]{0.1f, 0.2f, 0.3f})
                 .build();
 

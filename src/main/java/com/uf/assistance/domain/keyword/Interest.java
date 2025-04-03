@@ -30,16 +30,4 @@ public class Interest {
     @Transient
     private float[] vector;
 
-    private Integer count;
-
-    /**
-     * 카운트 증가 메서드
-     */
-    public void incrementCount() {
-        if (this.count == null) {
-            this.count = 1;
-        } else {
-            this.count++;
-        }
-    }
 }

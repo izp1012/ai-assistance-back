@@ -110,7 +110,6 @@ class VectorInterestServiceTest {
         Interest newInterest = Interest.builder()
                 .id(1L)
                 .keyword("테스트")
-                .count(1)
                 .build();
 
         when(interestRepository.save(any(Interest.class))).thenReturn(newInterest);
@@ -134,14 +133,12 @@ class VectorInterestServiceTest {
         // Then
         assertNotNull(result);
         assertEquals("테스트", result.getKeyword());
-        assertEquals(1, result.getCount());
         assertArrayEquals(new float[]{0.1f, 0.2f, 0.3f}, result.getVector());
 
         // JPA 저장 검증
         ArgumentCaptor<Interest> interestCaptor = ArgumentCaptor.forClass(Interest.class);
         verify(interestRepository).save(interestCaptor.capture());
         assertEquals("테스트", interestCaptor.getValue().getKeyword());
-        assertEquals(1, interestCaptor.getValue().getCount());
 
         // JDBC 업데이트 검증 (벡터 저장)
         verify(jdbcTemplate).update(
@@ -168,7 +165,6 @@ class VectorInterestServiceTest {
         Interest existingInterest = Interest.builder()
                 .id(1L)
                 .keyword("테스트")
-                .count(1)
                 .build();
 
         when(interestRepository.findByKeyword("테스트")).thenReturn(existingInterest);
@@ -177,7 +173,6 @@ class VectorInterestServiceTest {
         Interest updatedInterest = Interest.builder()
                 .id(1L)
                 .keyword("테스트")
-                .count(2) // count가 증가된 값
                 .build();
 
         when(interestRepository.save(any(Interest.class))).thenReturn(updatedInterest);
@@ -201,7 +196,6 @@ class VectorInterestServiceTest {
         // Then
         assertNotNull(result);
         assertEquals("테스트", result.getKeyword());
-        assertEquals(2, result.getCount()); // count가 증가되었는지 확인
         assertArrayEquals(new float[]{0.1f, 0.2f, 0.3f}, result.getVector());
 
         // JPA 저장 검증
@@ -218,8 +212,8 @@ class VectorInterestServiceTest {
     void getAllInterests_ShouldReturnAllInterestsWithVectors() {
         // Given
         List<Interest> jpaInterests = List.of(
-                Interest.builder().id(1L).keyword("테스트1").count(5).build(),
-                Interest.builder().id(2L).keyword("테스트2").count(3).build()
+                Interest.builder().id(1L).keyword("테스트1").build(),
+                Interest.builder().id(2L).keyword("테스트2").build()
         );
 
         // JPA 리포지토리 반환 값 설정
@@ -229,14 +223,12 @@ class VectorInterestServiceTest {
         Interest interest1WithVector = Interest.builder()
                 .id(1L)
                 .keyword("테스트1")
-                .count(5)
                 .vector(new float[]{0.1f, 0.2f, 0.3f})
                 .build();
 
         Interest interest2WithVector = Interest.builder()
                 .id(2L)
                 .keyword("테스트2")
-                .count(3)
                 .vector(new float[]{0.4f, 0.5f, 0.6f})
                 .build();
 
@@ -273,33 +265,6 @@ class VectorInterestServiceTest {
                 anyLong());
     }
 
-    @Test
-    void findPopularInterests_ShouldReturnLimitedInterests() {
-        // Given
-        int limit = 2;
-        List<Interest> expectedInterests = List.of(
-                Interest.builder().id(1L).keyword("테스트1").count(5).vector(new float[]{0.1f, 0.2f, 0.3f}).build(),
-                Interest.builder().id(2L).keyword("테스트2").count(3).vector(new float[]{0.4f, 0.5f, 0.6f}).build()
-        );
-
-        when(jdbcTemplate.query(
-                eq("SELECT * FROM interest ORDER BY count DESC LIMIT ?"),
-                any(VectorInterestService.InterestRowMapper.class),
-                eq(limit)))
-                .thenReturn(expectedInterests);
-
-        // When
-        List<Interest> result = vectorInterestService.findPopularInterests(limit);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("테스트1", result.get(0).getKeyword());
-        verify(jdbcTemplate).query(
-                eq("SELECT * FROM interest ORDER BY count DESC LIMIT ?"),
-                any(VectorInterestService.InterestRowMapper.class),
-                eq(limit));
-    }
 
     @Test
     void findSimilarInterests_ShouldReturnSimilarInterests() {
@@ -307,8 +272,8 @@ class VectorInterestServiceTest {
         float[] vector = new float[]{0.1f, 0.2f, 0.3f};
         int limit = 2;
         List<Interest> expectedInterests = List.of(
-                Interest.builder().id(1L).keyword("테스트1").count(5).vector(new float[]{0.1f, 0.2f, 0.3f}).build(),
-                Interest.builder().id(2L).keyword("테스트2").count(3).vector(new float[]{0.4f, 0.5f, 0.6f}).build()
+                Interest.builder().id(1L).keyword("테스트1").vector(new float[]{0.1f, 0.2f, 0.3f}).build(),
+                Interest.builder().id(2L).keyword("테스트2").vector(new float[]{0.4f, 0.5f, 0.6f}).build()
         );
 
         when(jdbcTemplate.query(
@@ -340,7 +305,6 @@ class VectorInterestServiceTest {
         // ResultSet 모의 객체 설정
         when(resultSet.getLong("id")).thenReturn(1L);
         when(resultSet.getString("keyword")).thenReturn("테스트");
-        when(resultSet.getInt("count")).thenReturn(3);
 
         // vector 배열 모의 객체 설정
         Float[] vectorArray = new Float[]{0.1f, 0.2f, 0.3f};
@@ -354,7 +318,6 @@ class VectorInterestServiceTest {
         assertNotNull(interest);
         assertEquals(1L, interest.getId());
         assertEquals("테스트", interest.getKeyword());
-        assertEquals(3, interest.getCount());
         assertArrayEquals(new float[]{0.1f, 0.2f, 0.3f}, interest.getVector());
     }
 
