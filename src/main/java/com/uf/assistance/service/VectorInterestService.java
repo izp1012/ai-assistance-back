@@ -388,7 +388,7 @@ public class VectorInterestService {
     /**
      * float 배열을 PostgreSQL의 vector 타입으로 변환하기 위한 포맷팅
      */
-    private String formatVectorForPgVector(float[] vector) {
+    protected String formatVectorForPgVector(float[] vector) {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < vector.length; i++) {
             if (i > 0) {
