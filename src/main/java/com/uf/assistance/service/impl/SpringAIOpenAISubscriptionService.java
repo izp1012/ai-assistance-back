@@ -90,8 +90,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
         // 이미 구독 중인지 확인
         if (aiSubscriptionRepository.existsByUserAndCustomAI(user, customAI)) {
             logger.info("사용자 ID: {}가 이미 AI ID: {}를 구독 중입니다", userId, aiId);
-            AISubscription aiSubScription = aiSubscriptionRepository.findByUserAndCustomAI(user, customAI).orElse(null);
-            return AISubScriptionRespDto.from(aiSubScription);
+            throw new RuntimeException("사용자 ID: "+userId+"가 이미 AI ID: "+aiId+"를 구독 중입니다");
         }
 
         // AI 활성화 여부 확인
