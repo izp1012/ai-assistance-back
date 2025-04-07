@@ -2,17 +2,24 @@ package com.uf.assistance.dto.ai;
 
 import com.uf.assistance.domain.ai.CustomAI;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Component
 public class CustomAIRespDto {
 
-    @Value("${file.upload-dir}")
     private static String IMAGE_BASE_URL;
+
+    @Autowired
+    public CustomAIRespDto(@Value("${IMAGE_BASE_URL}") String uploadDir) {
+        CustomAIRespDto.IMAGE_BASE_URL = uploadDir;
+    }
 
     private Long id;
     private String name;
@@ -26,7 +33,6 @@ public class CustomAIRespDto {
     private String createBy;
 
     public static CustomAIRespDto from(CustomAI customAI) {
-
 
         String fullImageUrl = customAI.getImageUrl() != null ?
                 IMAGE_BASE_URL + customAI.getImageUrl() :
