@@ -12,6 +12,8 @@ import com.uf.assistance.service.FileStorageService;
 import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth/ai")
@@ -61,6 +66,15 @@ public class AiController {
         return new ResponseEntity<>(new ResponseDto<>(1, "모든 CustomAI 리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtoList), HttpStatus.OK);
     }
 
+    @GetMapping("/custom/{aiId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ResponseDto<CustomAIRespDto>> getCustomAI(@PathVariable Long aiId) {
+        CustomAI customAI =  aiService.getCustomAIById(aiId);
+        CustomAIRespDto aiRespDto = CustomAIRespDto.from(customAI);
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "CustomAI 조회 ID : "+aiId, CustomDateUtil.toStringFormat(LocalDateTime.now()), aiRespDto), HttpStatus.OK);
+    }
+
     @PostMapping("/base/create")
     public ResponseEntity<?> createBaseAI(@RequestBody BaseAIReqDto baseAIReqDto) {
 
@@ -80,10 +94,29 @@ public class AiController {
     @GetMapping("/image/{filename}")
     public ResponseEntity<Resource> downloadImage(@PathVariable String filename) {
         Resource resource = fileStorageService.loadFileAsResource(filename);
+
+        // 파일 확장자에 따라 MediaType 결정
+        MediaType mediaType = getMediaTypeForFileName(filename);
+
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG) // 이미지 타입에 맞게 수정
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
+
+    // 파일명에 따라 적절한 MediaType 반환
+    private MediaType getMediaTypeForFileName(String fileName) {
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        switch (extension) {
+            case "jpg":
+            case "jpeg":
+                return MediaType.IMAGE_JPEG;
+            case "png":
+                return MediaType.IMAGE_PNG;
+            case "gif":
+                return MediaType.IMAGE_GIF;
+            default:
+                return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
 }
