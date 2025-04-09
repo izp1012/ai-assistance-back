@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://3.39.234.47:5432/youf
+    username: admin
+    password: admin1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+flask:
+  api:
+    base-url: http://3.39.234.47:5001
+
+file:
+  upload-dir: /home/ubuntu/youf/file  # 원하는 저장 경로 설정
+
+logging:
+  level:
+    com.uf.assistance: DEBUG
+    org.springframework.jdbc.core: DEBUG
