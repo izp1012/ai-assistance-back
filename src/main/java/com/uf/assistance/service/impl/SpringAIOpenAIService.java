@@ -161,15 +161,10 @@ public class SpringAIOpenAIService implements AIService {
         User user = userService.findUserEntityById(customAIReqDto.getUserId());
 
         // 이미지 처리
-        String imageUrl = null;
+        String imageUrl = "";
         if (file != null && !file.isEmpty()) {
-            String fileName = fileStorageService.storeFile(file);
-
             // 이미지 URL 생성
-            imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/home/ubuntu/youf/file/")
-                    .path(fileName)
-                    .toUriString();
+            imageUrl = fileStorageService.storeFile(file);
         } else {
             // 기본 이미지 URL 사용 (이미지가 없는 경우)
             imageUrl = customAIReqDto.getImageUrl();
