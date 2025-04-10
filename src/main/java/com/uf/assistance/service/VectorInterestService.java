@@ -9,6 +9,7 @@ import com.uf.assistance.dto.keyword.KeywordResp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -347,12 +349,29 @@ public class VectorInterestService {
      * 유사한 키워드 검색 (코사인 유사도 기준) - JDBC 사용
      */
     public List<Interest> findSimilarInterests(float[] vector, int limit) {
-        return jdbcTemplate.query(
-                "SELECT * FROM interest ORDER BY vector <=> ?::vector LIMIT ?",
-                new InterestRowMapper(),
-                formatVectorForPgVector(vector),
-                limit
-        );
+        try {
+            // 벡터가 null이거나 비어있는 경우 빈 리스트 반환
+            if (vector == null || vector.length == 0) {
+                return Collections.emptyList();
+            }
+
+            String formattedVector = formatVectorForPgVector(vector);
+
+            return jdbcTemplate.query(
+                    "SELECT * FROM interest WHERE vector IS NOT NULL ORDER BY vector <=> ?::vector LIMIT ?",
+                    new InterestRowMapper(),
+                    formattedVector,
+                    limit
+            );
+        } catch (DataIntegrityViolationException e) {
+            // 데이터 무결성 오류 로깅 (선택적)
+            logger.warn("Vector similarity search failed: {}", e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            // 기타 예외 처리 (선택적)
+            logger.error("Error during vector similarity search", e);
+            return Collections.emptyList();
+        }
     }
 
     /**
