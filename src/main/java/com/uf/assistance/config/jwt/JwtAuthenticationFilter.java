@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -65,5 +66,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         LoginRespDto loginRespDto = new LoginRespDto(loginUser.getUser(), jwToken);
         CustomResponseUtil.success(response, "Login", "jwt-Login 성공", loginRespDto);
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                              AuthenticationException failed) throws IOException, ServletException {
+        logger.debug("디버그: unsuccessfulAuthentication 호출");
+        logger.error(failed.getMessage());
+        CustomResponseUtil.fail(response, "Login", "jwt-Login 실패", null);
     }
 }

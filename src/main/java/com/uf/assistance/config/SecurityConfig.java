@@ -1,10 +1,13 @@
 package com.uf.assistance.config;
 
 import com.uf.assistance.config.jwt.JwtAuthenticationFilter;
+import com.uf.assistance.config.jwt.JwtAuthorizationFilter;
+import com.uf.assistance.util.CustomResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +21,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
+//@EnableWebSecurity
 public class SecurityConfig {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -40,13 +44,16 @@ public class SecurityConfig {
 
     //JWT 필터 등록이 필요함
     public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
-
         @Override
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
             builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
-//            builder.addFilter(new JwtAuthorizationFilter(authenticationManager));
+            builder.addFilter(new JwtAuthorizationFilter(authenticationManager));
             super.configure(builder);
+        }
+
+        public HttpSecurity build(){
+            return getBuilder();
         }
     }
 
@@ -77,33 +84,34 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         //필터 적용
-        http.addFilter(new JwtAuthenticationFilter(authenticationManager));
+        http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
 
-//        // 인증 실패 가로채기
-//        http.exceptionHandling(exceptionHandling -> exceptionHandling
-//                .authenticationEntryPoint((request, response, authException) -> {
-//                    CustomResponseUtil.fail(response, "로그인을 진행해 주세요", HttpStatus.UNAUTHORIZED);
-//                })
-//        );
-//
-//        http.exceptionHandling(exceptionHandling -> {
-//           exceptionHandling.accessDeniedHandler((request, response, accessDeniedException) -> {
-//              CustomResponseUtil.fail(response, "권한이 없습니다.", HttpStatus.FORBIDDEN);
-//           });
-//        });
-//
+        // 인증 실패 가로채기
+
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint((request, response, authException) -> {
+                    CustomResponseUtil.fail(response, "login", "로그인을 진행해 주세요", HttpStatus.UNAUTHORIZED);
+                })
+        );
+
+        http.exceptionHandling(exceptionHandling -> {
+           exceptionHandling.accessDeniedHandler((request, response, accessDeniedException) -> {
+              CustomResponseUtil.fail(response, "login", "권한이 없습니다.", HttpStatus.FORBIDDEN);
+           });
+        });
+
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/v3/api-docs/**", // OpenAPI JSON
                         "/api-docs/**",
                         "/swagger-ui/**",    // Swagger UI
-                        "/swagger-ui.html").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+                        "/swagger-ui.html",
+                        "/api/login/**",
+                        "/api/join/**").permitAll()
+//                .requestMatchers("/api/auth/**").permitAll()
 //                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
-                .requestMatchers("/api/admin/**").permitAll() //임시로 모든 요청 허용
+//                .requestMatchers("/api/admin/**").permitAll() //임시로 모든 요청 허용
                 .requestMatchers("/chat/**").permitAll() //WebSocket 엔드포인트 허용
-//                .anyRequest().authenticated()
-                .anyRequest().permitAll()
-        );
+                .requestMatchers("/api/auth/**").authenticated());
 
         return http.build();
     }
