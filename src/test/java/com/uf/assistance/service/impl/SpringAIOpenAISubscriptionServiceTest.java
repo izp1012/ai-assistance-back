@@ -242,18 +242,15 @@ class SpringAIOpenAISubscriptionServiceTest {
         when(userService.findUserEntityById(1L)).thenReturn(testUser);
         when(customAIRepository.findById(1L)).thenReturn(Optional.of(testCustomAI));
         when(aiSubscriptionRepository.existsByUserAndCustomAI(testUser, testCustomAI)).thenReturn(true);
-        when(aiSubscriptionRepository.findByUserAndCustomAI(any(User.class), eq(testCustomAI))).thenReturn(Optional.of(testSubscription));
 
-        // When
-        AISubScriptionRespDto result = subscriptionService.subscribe(1L, 1L);
-        AISubScriptionRespDto testAISubScriptionRespDto = AISubScriptionRespDto.from(testSubscription);
+        // When & Then
+        assertThrows(RuntimeException.class, () -> subscriptionService.subscribe(1L, 1L));
 
-        // Then
-        assertEquals(testAISubScriptionRespDto.getUsername(), result.getUsername());
-        assertEquals(testAISubScriptionRespDto.getCustomAIRespDto().getName(), result.getCustomAIRespDto().getName());
-        assertEquals(testAISubScriptionRespDto.getId(), result.getId());
+        // 저장 메소드는 호출되지 않아야 함
         verify(aiSubscriptionRepository, never()).save(any(AISubscription.class));
     }
+
+
 
     @Test
     @DisplayName("비활성화된 AI 구독 시도 테스트")
