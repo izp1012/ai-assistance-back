@@ -34,11 +34,14 @@ public class ChatKeywordServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private KeywordGenerationService keywordGenerationService;
+
     private ChatKeywordService chatKeywordService;
 
     @BeforeEach
     void setUp() {
-        chatKeywordService = new ChatKeywordService(chatKeywordRepository, vectorInterestService, userInterestService, objectMapper);
+        chatKeywordService = new ChatKeywordService(chatKeywordRepository, vectorInterestService, userInterestService, objectMapper, keywordGenerationService);
     }
 
     @Test

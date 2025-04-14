@@ -25,17 +25,20 @@ public class ChatKeywordService {
     private final VectorInterestService vectorInterestService;
     private final UserInterestService userInterestService;
     private final ObjectMapper objectMapper;
+    private final KeywordGenerationService keywordGenerationService;
 
     @Autowired
     public ChatKeywordService(
             ChatKeywordRepository chatKeywordRepository,
             VectorInterestService vectorInterestService,
             UserInterestService userInterestService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            KeywordGenerationService keywordGenerationService) {
         this.chatKeywordRepository = chatKeywordRepository;
         this.vectorInterestService = vectorInterestService;
         this.userInterestService = userInterestService;
         this.objectMapper = objectMapper;
+        this.keywordGenerationService = keywordGenerationService;
     }
 
     /**
@@ -65,6 +68,7 @@ public class ChatKeywordService {
     /**
      * System Message와 User Message 간의 중간값 벡터 계산 및 유사 키워드 추출
      * 유사도 임계값 이상인 경우 기존 키워드 사용, 미만인 경우 새 키워드 추출 및 저장
+     * OpenAI를 사용하여 키워드 간의 중간 키워드를 생성하는 기능 추가
      */
     @Transactional
     public String enhanceUserMessageWithKeywords(String systemMessage, String userMessage) {
@@ -88,58 +92,62 @@ public class ChatKeywordService {
 
             // 유사한 키워드 검색을 위한 초기화
             List<Interest> similarInterests;
-            StringBuilder enhancedMessage = new StringBuilder(userMessage);
 
-            // 유사도가 80% 미만인 경우 새 키워드 추출 및 저장
-            if (similarity < 0.8) {
+            // systemMessage와 userMessage를 모두 포함하는 메시지 생성
+            StringBuilder enhancedMessage = new StringBuilder();
+            enhancedMessage.append(systemMessage).append("\n\n").append(userMessage);
+
+            List<String> resultKeywords = new ArrayList<>();
+
+            // 유사도가 80% 이상인 경우 기존 키워드 사용 (Limit 증가)
+            if (similarity >= 0.8) {
+                // 상위 10개까지 유사 키워드 검색
+                similarInterests = vectorInterestService.findSimilarInterests(midpointVector, 10);
+
+                if (!similarInterests.isEmpty()) {
+                    // 모든 유사 키워드 사용
+                    for (Interest interest : similarInterests) {
+                        resultKeywords.add(interest.getKeyword());
+                    }
+                }
+            }
+            // 유사도가 80% 미만인 경우
+            else {
                 // 유사도가 높은 키워드 검색 (80% 이상)
                 similarInterests = vectorInterestService.findSimilarInterestsAboveThreshold(midpointVector, 0.8);
 
-                // 유사한 키워드가 없으면 중간점 벡터로 새 키워드 생성
+                // 유사한 키워드가 없으면 KeywordGenerationService 호출하여 중간 키워드 생성
                 if (similarInterests.isEmpty()) {
                     // 추출된 키워드 가져오기
                     Map extractedKeywords = (Map) midpointResult.get("extracted_keywords");
                     List<String> text1Keywords = (List<String>) extractedKeywords.get("text1");
                     List<String> text2Keywords = (List<String>) extractedKeywords.get("text2");
 
-                    // 시스템 메시지와 사용자 메시지에서 추출된 키워드 병합
-                    List<String> allKeywords = new ArrayList<>();
-                    allKeywords.addAll(text1Keywords);
-                    allKeywords.addAll(text2Keywords);
+                    // 키워드 생성 서비스 호출
+                    List<String> middleKeywords = keywordGenerationService.generateMiddleKeywords(text1Keywords, text2Keywords);
 
-                    // 중간점 벡터로 새 Interest 생성
-                    if (!allKeywords.isEmpty()) {
-                        String newKeyword = allKeywords.get(0);  // 첫 번째 키워드 사용
+                    if (!middleKeywords.isEmpty()) {
+                        for (String newKeyword : middleKeywords) {
+                            // 각 중간 키워드에 대한 임베딩 가져오기
+                            Interest interest = vectorInterestService.findOrCreateInterest(newKeyword);
 
-                        // Interest 생성 및 벡터 저장
-                        Interest interest = Interest.builder()
-                                .keyword(newKeyword)
-                                .build();
-                        interest = vectorInterestService.findOrCreateInterest(newKeyword);
-
-                        // 중간점 벡터 업데이트
-                        interest.setVector(midpointVector);
-
-                        // 사용자 메시지에 키워드 추가
-                        enhancedMessage.append(" #").append(newKeyword);
+                            // 결과 키워드 목록에 추가
+                            resultKeywords.add(newKeyword);
+                        }
                     }
                 } else {
-                    // 가장 유사한 키워드 선택 (첫 번째 결과)
-                    Interest mostSimilarInterest = similarInterests.get(0);
-
-                    // 사용자 메시지에 키워드 추가
-                    enhancedMessage.append(" #").append(mostSimilarInterest.getKeyword());
+                    // 유사도 높은 키워드 모두 사용
+                    for (Interest interest : similarInterests) {
+                        resultKeywords.add(interest.getKeyword());
+                    }
                 }
-            } else {
-                // 유사도가 80% 이상인 경우 기존 키워드 사용
-                similarInterests = vectorInterestService.findSimilarInterests(midpointVector, 3);
+            }
 
-                if (!similarInterests.isEmpty()) {
-                    // 가장 유사한 키워드 선택 (첫 번째 결과)
-                    Interest mostSimilarInterest = similarInterests.get(0);
-
-                    // 사용자 메시지에 키워드 추가
-                    enhancedMessage.append(" #").append(mostSimilarInterest.getKeyword());
+            // 메시지에 키워드 추가
+            if (!resultKeywords.isEmpty()) {
+                enhancedMessage.append("\n\n");
+                for (String keyword : resultKeywords) {
+                    enhancedMessage.append(" #").append(keyword);
                 }
             }
 
@@ -147,8 +155,8 @@ public class ChatKeywordService {
 
         } catch (Exception e) {
             logger.error("키워드 중간값 계산 중 오류 발생: {}", e.getMessage(), e);
-            // 오류 발생 시 원본 메시지 그대로 반환
-            return userMessage;
+            // 오류 발생 시 원본 메시지(시스템 메시지 + 사용자 메시지) 반환
+            return systemMessage + "\n\n" + userMessage;
         }
     }
 
