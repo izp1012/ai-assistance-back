@@ -80,7 +80,7 @@ public class ChatService {
         // 저장된 Chat과 메시지로 ChatKeyword 생성 및 처리
         chatKeywordService.processMessageAndCreateLink(chatPersistence, chatReqDto.getContent());
 
-        return new ChatRespDto(chatPersistence);
+        return ChatRespDto.from(chatPersistence);
     }
 
     @Transactional
@@ -96,7 +96,7 @@ public class ChatService {
         // 사용자 메시지에서도 키워드 추출 및 처리
         chatKeywordService.processMessageAndCreateLink(chatPersistence, chatReqDto.getContent());
 
-        return new ChatRespDto(chatPersistence);
+        return ChatRespDto.from(chatPersistence);
     }
 
     public List<Chat> getMessagesByAiId(Long aiSubscriptionId) {

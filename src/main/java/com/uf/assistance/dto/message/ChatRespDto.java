@@ -17,6 +17,7 @@ public class ChatRespDto {
     private String content;
     private String status;
     private String customAiName;
+    private String imageUrl;
     private MessageType type;
     private LocalDateTime timestamp;
 
@@ -35,6 +36,7 @@ public class ChatRespDto {
         dto.setContent(chat.getContent());
         dto.setStatus(chat.getStatus().name());  // ChatStatus를 String으로 변환
         dto.setCustomAiName(chat.getAiSubscription().getCustomAI().getName());
+        dto.setImageUrl(chat.getAiSubscription().getCustomAI().getImageUrl());
         dto.setTimestamp(chat.getTimestamp());
         dto.setType(chat.getType());  // MessageType을 String으로 변환
 

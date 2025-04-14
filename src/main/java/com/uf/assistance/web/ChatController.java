@@ -25,10 +25,7 @@ import org.springframework.stereotype.Controller;
 
 import jakarta.validation.Valid;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,6 +36,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Controller
+@RequestMapping("/api/auth/")
 @Tag(name = "채팅", description = "채팅 관련 API")
 public class ChatController {
 
@@ -89,7 +87,7 @@ public class ChatController {
         return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
-    @GetMapping("/api/messages/subscription/{subscriptionId}")
+    @GetMapping("/messages/subscription/{subscriptionId}")
     @ResponseBody
     @Transactional
     public ResponseEntity<ResponseDto<List<ChatRespDto>>> getMessages(@PathVariable Long subscriptionId) {
@@ -103,7 +101,7 @@ public class ChatController {
         return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
     }
 
-    @GetMapping("/api/messages/user/{userId}")
+    @GetMapping("/messages/user/{userId}")
     @ResponseBody
     @Transactional
     @Tag(name ="사용자별, 구독한 AI 들의 마지막 채팅 가져오기")
@@ -118,7 +116,7 @@ public class ChatController {
         return new ResponseEntity<>(new ResponseDto<>(1, "사용자별 AI 별 마지막 채팅 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoList), HttpStatus.OK);
     }
 
-    @GetMapping("/api/messages/{subscriptionId}/page")
+    @GetMapping("/messages/{subscriptionId}/page")
     @ResponseBody
     @Transactional
     public ResponseEntity<ResponseDto<Page<ChatRespDto>>> getMessagesWithPagination(
