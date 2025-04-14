@@ -38,8 +38,6 @@ import java.util.Map;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AiController {
     private final AIService aiService;
-    private final UserService userService;
-    private final FileStorageService fileStorageService;
 
     @GetMapping("/base/all")
     @Transactional(readOnly = true)
@@ -90,33 +88,5 @@ public class AiController {
         return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
     }
 
-
-    @GetMapping("/image/{filename}")
-    public ResponseEntity<Resource> downloadImage(@PathVariable String filename) {
-        Resource resource = fileStorageService.loadFileAsResource(filename);
-
-        // 파일 확장자에 따라 MediaType 결정
-        MediaType mediaType = getMediaTypeForFileName(filename);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG) // 이미지 타입에 맞게 수정
-                .body(resource);
-    }
-
-    // 파일명에 따라 적절한 MediaType 반환
-    private MediaType getMediaTypeForFileName(String fileName) {
-        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-        switch (extension) {
-            case "jpg":
-            case "jpeg":
-                return MediaType.IMAGE_JPEG;
-            case "png":
-                return MediaType.IMAGE_PNG;
-            case "gif":
-                return MediaType.IMAGE_GIF;
-            default:
-                return MediaType.APPLICATION_OCTET_STREAM;
-        }
-    }
 
 }

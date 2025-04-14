@@ -106,7 +106,8 @@ public class SecurityConfig {
                         "/swagger-ui/**",    // Swagger UI
                         "/swagger-ui.html",
                         "/api/login/**",
-                        "/api/join/**").permitAll()
+                        "/api/join/**",
+                        "/api/image/**").permitAll()
 //                .requestMatchers("/api/auth/**").permitAll()
 //                .requestMatchers("/api/admin/**").hasRole(UserEnum.ADMIN.name())
 //                .requestMatchers("/api/admin/**").permitAll() //임시로 모든 요청 허용
