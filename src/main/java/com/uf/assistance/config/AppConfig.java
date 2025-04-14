@@ -1,15 +1,16 @@
 package com.uf.assistance.config;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
-@Component
+@Getter
+@Configuration
+@DependsOn("envPropertySource")
 public class AppConfig {
 
-    @Value("${image.base.url}")
+    @Value("${IMAGE_BASE_URL}")
     private String imageBaseUrl;
 
-    public String getImageBaseUrl() {
-        return imageBaseUrl;
-    }
 }
