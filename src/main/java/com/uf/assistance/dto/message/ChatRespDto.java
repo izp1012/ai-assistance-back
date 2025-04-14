@@ -1,16 +1,20 @@
 package com.uf.assistance.dto.message;
 
+import com.uf.assistance.config.AppConfig;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.MessageType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@Component
 public class ChatRespDto {
     private Long id;
     private String senderName; // User의 이름
@@ -21,22 +25,25 @@ public class ChatRespDto {
     private MessageType type;
     private LocalDateTime timestamp;
 
-    public ChatRespDto(Chat chatPersistence) {
-        this.id = chatPersistence.getId();
-        this.senderName = chatPersistence.getSender().getUsername();
-        this.content = chatPersistence.getContent();
-        this.type = chatPersistence.getType();
-        this.timestamp = LocalDateTime.now();
+    private static AppConfig appConfig;
+
+    @Autowired
+    public ChatRespDto(AppConfig appConfig) {
+        this.appConfig = appConfig;
     }
 
-
     public static ChatRespDto from(Chat chat) {
+
+        String fullImageUrl = chat.getAiSubscription().getCustomAI().getImageUrl() != null ?
+                appConfig.getImageBaseUrl() + chat.getAiSubscription().getCustomAI().getImageUrl() :
+                null;
+
         ChatRespDto dto = new ChatRespDto();
         dto.setId(chat.getId());
         dto.setContent(chat.getContent());
         dto.setStatus(chat.getStatus().name());  // ChatStatus를 String으로 변환
         dto.setCustomAiName(chat.getAiSubscription().getCustomAI().getName());
-        dto.setImageUrl(chat.getAiSubscription().getCustomAI().getImageUrl());
+        dto.setImageUrl(fullImageUrl);
         dto.setTimestamp(chat.getTimestamp());
         dto.setType(chat.getType());  // MessageType을 String으로 변환
 
