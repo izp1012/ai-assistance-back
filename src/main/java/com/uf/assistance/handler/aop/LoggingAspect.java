@@ -10,6 +10,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -25,7 +26,7 @@ public class LoggingAspect {
 
     //TODO Request 와 Response 로그 저장하기
     //TODO id, ip, userid, method, request uri, request body
-    //TODO id, ip, userid, method, response body, http status
+    //TODO id, ip, userid, method, response body, http statusG
     private static final String START_PREFIX = "-->";
     private static final String COMPLETE_PREFIX = "<--";
     private static final String EX_PREFIX = "<X-";
@@ -63,7 +64,17 @@ public class LoggingAspect {
         String requestId = RequestIdHolder.get();
         if (response != null) {
             try {
-                log.info("[{}] RESPONSE: {}", requestId, objectMapper.writeValueAsString(response));
+                if (response instanceof ResponseEntity<?> responseEntity) {
+                    Object body = responseEntity.getBody();
+                    // 리소스(body)가 직렬화 불가능한 경우는 스킵
+                    if (body instanceof org.springframework.core.io.Resource) {
+                        log.info("[{}] RESPONSE: <Resource body omitted>", requestId);
+                    } else {
+                        log.info("[{}] RESPONSE: {}", requestId, objectMapper.writeValueAsString(response));
+                    }
+                } else {
+                    log.info("[{}] RESPONSE: {}", requestId, objectMapper.writeValueAsString(response));
+                }
             } catch (Exception e) {
                 log.error("Failed to log response", e);
             }
