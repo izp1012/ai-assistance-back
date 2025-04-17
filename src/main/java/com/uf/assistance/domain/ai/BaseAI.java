@@ -71,5 +71,12 @@ public class BaseAI {
 
     @Version
     private Long version;
+
+    @PrePersist
+    public void prePersist() {
+        if (updatedBy == null) {
+            updatedBy = createdBy;  // 생성 시 updatedAt을 createdAt과 동일하게 설정
+        }
+    }
 }
 

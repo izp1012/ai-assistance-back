@@ -80,6 +80,12 @@ public class CustomAI {
     @Version
     private Long version;
 
+    @PrePersist
+    public void prePersist() {
+        if (updatedBy == null) {
+            updatedBy = createdBy;  // 생성 시 updatedAt을 createdAt과 동일하게 설정
+        }
+    }
     /**
      * 변수를 값으로 대체하여 완성된 프롬프트 생성
      * @param variables 변수 맵 (변수명 -> 값)
