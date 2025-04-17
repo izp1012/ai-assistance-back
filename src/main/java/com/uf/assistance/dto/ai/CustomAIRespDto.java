@@ -45,6 +45,7 @@ public class CustomAIRespDto {
                 .description(customAI.getDescription())
                 .imageUrl(fullImageUrl) // 이미지 파일명
                 .basePrompt(customAI.getBaseAI().getBasePrompt())
+                .customPrompt(customAI.getCustomPrompt())
                 .createByUsrId(customAI.getCreatedBy().getId())
                 .createByUsrName(customAI.getCreatedBy().getUsername())
                 .updateByUsrId(customAI.getUpdatedBy().getId())
