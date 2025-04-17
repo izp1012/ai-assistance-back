@@ -48,7 +48,7 @@ public class CustomAIRespDto {
                 .createByUsrId(customAI.getCreatedBy().getId())
                 .createByUsrName(customAI.getCreatedBy().getUsername())
                 .updateByUsrId(customAI.getUpdatedBy().getId())
-                .createByUsrName(customAI.getUpdatedBy().getUsername())
+                .updateByUsrName(customAI.getUpdatedBy().getUsername())
                 .active(customAI.isActive())
                 .hidden(customAI.isHidden())
                 .build();
