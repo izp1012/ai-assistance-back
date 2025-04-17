@@ -8,16 +8,10 @@ import com.uf.assistance.dto.ai.BaseAIRespDto;
 import com.uf.assistance.dto.ai.CustomAIReqDto;
 import com.uf.assistance.dto.ai.CustomAIRespDto;
 import com.uf.assistance.service.AIService;
-import com.uf.assistance.service.FileStorageService;
-import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth/ai")
@@ -82,7 +73,7 @@ public class AiController {
     }
 
     @PostMapping(value = "/custom/create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<?> createCustomAI(@RequestPart("jsonData") CustomAIReqDto customAIReqDto, @RequestPart("image") MultipartFile file) {
+    public ResponseEntity<?> createCustomAI(@RequestPart("jsonData") CustomAIReqDto customAIReqDto, @RequestPart(value ="image", required = false) MultipartFile file) {
         CustomAIRespDto customAIRespDto = aiService.createCustomAI(customAIReqDto, file);
 
         return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
