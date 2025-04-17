@@ -58,10 +58,11 @@ public interface AIService {
     List<BaseAI> getAvailableBaseAIs();
 
     /**
-     * 사용 가능한 모든 CustomAI 조회
-     * @return AI 목록
+     * @Param active
+     * @Param hidden
+     * @return active, hidden 에 따른, Custom AI 목록
      */
-    List<CustomAI> getAvailableCustomAIs();
+    List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden);
     /**
      * AI 생성
      * @return 생성한 AI 정보

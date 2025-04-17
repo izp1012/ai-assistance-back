@@ -141,9 +141,19 @@ public class SpringAIOpenAIService implements AIService {
     }
 
     @Override
-    public List<CustomAI> getAvailableCustomAIs() {
-        logger.debug("사용 가능한 모든 공개 CustomAI 조회");
-        return customAiRepository.findAllByActiveTrueAndHiddenFalse();
+    public List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden) {
+
+        logger.debug("CustomAI 조회 active : {} , hidden : {} ", isActive, isHidden);
+
+        if (isActive == null && isHidden == null) {
+            return customAiRepository.findAll();
+        } else if (isActive != null && isHidden == null) {
+            return customAiRepository.findByActive(isActive);
+        } else if (isActive == null && isHidden != null) {
+            return customAiRepository.findByHidden(isHidden);
+        } else {
+            return customAiRepository.findAllByActiveAndHidden(isActive, isHidden);
+        }
     }
 
     @Override

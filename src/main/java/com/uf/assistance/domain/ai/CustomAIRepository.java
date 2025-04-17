@@ -15,6 +15,10 @@ public interface CustomAIRepository extends JpaRepository<CustomAI, Long> {
     @Override
     List<CustomAI> findAll();
 
+    List<CustomAI> findByActive(boolean active);
+
+    List<CustomAI> findByHidden(boolean hidden);
+
     /**
      * 활성화된 모든 AI 조회
      * @return 활성화된 AI 목록
@@ -22,10 +26,11 @@ public interface CustomAIRepository extends JpaRepository<CustomAI, Long> {
     List<CustomAI> findAllByActiveTrue();
 
     /**
-     * 공개된 활성화 AI 목록 조회
-     * @return 공개된 활성화 AI 목록
+     * @Param active
+     * @Param hidden
+     * @return active, hidden 에 따른, Custom AI 목록
      */
-    List<CustomAI> findAllByActiveTrueAndHiddenFalse();
+    List<CustomAI> findAllByActiveAndHidden(boolean active, boolean hidden);
 
     /**
      * 특정 사용자가 만든 AI 목록 조회

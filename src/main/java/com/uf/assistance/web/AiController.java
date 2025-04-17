@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth/ai")
@@ -42,17 +43,27 @@ public class AiController {
         }
         return new ResponseEntity<>(new ResponseDto<>(1, "모든 BaseAI 리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), baseAIRespDtoList), HttpStatus.OK);
     }
+
+
     @GetMapping("/custom/all")
     @Transactional(readOnly = true)
-    public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getAllCustomAIs() {
-        List<CustomAI> list =  aiService.getAvailableCustomAIs();
-        List<CustomAIRespDto> customAIRespDtoList = new ArrayList<>();
+    @Tag(name = "CustomAI 조회", description = "Parameter 에 Y/N 둘 중 하나 입력")
+    public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getAllCustomAIs(
+            @RequestParam(value = "active", required = false) String active,
+            @RequestParam(value = "hidden", required = false) String hidden ) {
 
-        for(CustomAI ai : list) {
-            CustomAIRespDto aiRespDto = CustomAIRespDto.from(ai);
-            customAIRespDtoList.add(aiRespDto);
-        }
-        return new ResponseEntity<>(new ResponseDto<>(1, "모든 CustomAI 리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtoList), HttpStatus.OK);
+        List<CustomAI> list;
+
+        Boolean isActive = active != null ? "Y".equalsIgnoreCase(active) : null;
+        Boolean isHidden = hidden != null ? "Y".equalsIgnoreCase(hidden) : null;
+
+        list = aiService.getCustomAIs(isActive, isHidden); // 부분 조건 적용
+
+        List<CustomAIRespDto> customAIRespDtoList = list.stream()
+                .map(CustomAIRespDto::from)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "CustomAI 리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtoList), HttpStatus.OK);
     }
 
     @GetMapping("/custom/{aiId}")
