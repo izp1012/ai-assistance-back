@@ -3,17 +3,18 @@ package com.uf.assistance.dto.message;
 import com.uf.assistance.config.AppConfig;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.MessageType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 @Component
 public class ChatRespDto {
     private Long id;
@@ -38,18 +39,15 @@ public class ChatRespDto {
                 appConfig.getImageBaseUrl() + chat.getAiSubscription().getCustomAI().getImageUrl() :
                 null;
 
-        ChatRespDto dto = new ChatRespDto();
-        dto.setId(chat.getId());
-        dto.setContent(chat.getContent());
-        dto.setStatus(chat.getStatus().name());  // ChatStatus를 String으로 변환
-        dto.setCustomAiName(chat.getAiSubscription().getCustomAI().getName());
-        dto.setImageUrl(fullImageUrl);
-        dto.setTimestamp(chat.getTimestamp());
-        dto.setType(chat.getType());  // MessageType을 String으로 변환
-
-        // User의 정보를 가져옵니다 (Lazy 로딩 문제를 피하기 위해 필요한 데이터만 로드)
-        dto.setSenderName(chat.getSender().getUsername());
-
-        return dto;
+        return ChatRespDto.builder()
+                .id(chat.getId())
+                .content(chat.getContent())
+                .status(chat.getStatus().name())
+                .customAiName(chat.getAiSubscription().getCustomAI().getName())
+                .imageUrl(fullImageUrl)
+                .timestamp(chat.getTimestamp())
+                .type(chat.getType())
+                .senderName(chat.getSender().getUsername())
+                .build();
     }
 }

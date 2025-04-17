@@ -1,14 +1,12 @@
 package com.uf.assistance.dto.ai;
 
 import com.uf.assistance.domain.ai.BaseAI;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 
 @Getter
-@Setter
-@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class BaseAIRespDto {
 
     private Long id;
@@ -16,21 +14,26 @@ public class BaseAIRespDto {
     private String description;
     private String aiProvider;
     private String basePrompt;
-    private String developerName;
+    private Long createByUsrId;
+    private String createByUsrName;
+    private Long updateByUsrId;
+    private String updateByUsrName;
     private boolean active;
 
     public static BaseAIRespDto from(BaseAI baseAI) {
 
-        BaseAIRespDto dto = new BaseAIRespDto();
-        dto.setId(baseAI.getId());
-        dto.setName(baseAI.getName());
-        dto.setDescription(baseAI.getDescription());
-        dto.setAiProvider(baseAI.getAiProvider());
-        dto.setBasePrompt(baseAI.getBasePrompt());
-        dto.setDeveloperName(baseAI.getCreatedBy().getUsername());
-        dto.setActive(baseAI.isActive());
-
-        return dto;
+        return BaseAIRespDto.builder()
+                .id(baseAI.getId())
+                .name(baseAI.getName())
+                .description(baseAI.getDescription())
+                .aiProvider(baseAI.getAiProvider())
+                .basePrompt(baseAI.getBasePrompt())
+                .createByUsrId(baseAI.getCreatedBy().getId())
+                .createByUsrName(baseAI.getCreatedBy().getUsername())
+                .updateByUsrId(baseAI.getUpdatedBy().getId())
+                .updateByUsrName(baseAI.getUpdatedBy().getUsername())
+                .active(baseAI.isActive())
+                .build();
     }
 }
 

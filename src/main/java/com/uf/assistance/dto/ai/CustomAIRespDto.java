@@ -21,8 +21,10 @@ public class CustomAIRespDto {
     private boolean active;
     private boolean hidden;
     private String imageUrl;
-    private String developerName;
-    private String createBy;
+    private Long createByUsrId;
+    private String createByUsrName;
+    private Long updateByUsrId;
+    private String updateByUsrName;
 
     private static AppConfig appConfig;
 
@@ -43,7 +45,10 @@ public class CustomAIRespDto {
                 .description(customAI.getDescription())
                 .imageUrl(fullImageUrl) // 이미지 파일명
                 .basePrompt(customAI.getBaseAI().getBasePrompt())
-                .createBy(customAI.getCreatedBy().getUsername())
+                .createByUsrId(customAI.getCreatedBy().getId())
+                .createByUsrName(customAI.getCreatedBy().getUsername())
+                .updateByUsrId(customAI.getUpdatedBy().getId())
+                .createByUsrName(customAI.getUpdatedBy().getUsername())
                 .active(customAI.isActive())
                 .hidden(customAI.isHidden())
                 .build();
