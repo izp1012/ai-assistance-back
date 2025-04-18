@@ -1,9 +1,6 @@
 package com.uf.assistance.service.impl;
 
-import com.uf.assistance.domain.ai.BaseAIRepository;
-import com.uf.assistance.domain.ai.BaseAI;
-import com.uf.assistance.domain.ai.CustomAI;
-import com.uf.assistance.domain.ai.CustomAIRepository;
+import com.uf.assistance.domain.ai.*;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.ai.BaseAIReqDto;
 import com.uf.assistance.dto.ai.BaseAIRespDto;
@@ -23,6 +20,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -141,19 +139,24 @@ public class SpringAIOpenAIService implements AIService {
     }
 
     @Override
-    public List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden) {
+    public List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden, String userId) {
+        logger.debug("CustomAI 조회 active : {} , hidden : {}, createUserID: {}", isActive, isHidden, userId);
 
-        logger.debug("CustomAI 조회 active : {} , hidden : {} ", isActive, isHidden);
+        Specification<CustomAI> spec = Specification.where(null);
 
-        if (isActive == null && isHidden == null) {
-            return customAiRepository.findAll();
-        } else if (isActive != null && isHidden == null) {
-            return customAiRepository.findByActive(isActive);
-        } else if (isActive == null && isHidden != null) {
-            return customAiRepository.findByHidden(isHidden);
-        } else {
-            return customAiRepository.findAllByActiveAndHidden(isActive, isHidden);
+        if (isActive != null) {
+            spec = spec.and(CustomAiSpecification.hasActive(isActive));
         }
+
+        if (isHidden != null) {
+            spec = spec.and(CustomAiSpecification.hasHidden(isHidden));
+        }
+
+        if (userId != null && !userId.isEmpty()) {
+            spec = spec.and(CustomAiSpecification.hasCreateUser(userId));
+        }
+
+        return customAiRepository.findAll(spec);
     }
 
     @Override

@@ -62,7 +62,7 @@ public interface AIService {
      * @Param hidden
      * @return active, hidden 에 따른, Custom AI 목록
      */
-    List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden);
+    List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden, String creator);
     /**
      * AI 생성
      * @return 생성한 AI 정보

@@ -49,6 +49,7 @@ public class AiController {
     @Transactional(readOnly = true)
     @Tag(name = "CustomAI 조회", description = "Parameter 에 Y/N 둘 중 하나 입력")
     public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getAllCustomAIs(
+            @RequestParam(value = "creator", required = false) String creator,
             @RequestParam(value = "active", required = false) String active,
             @RequestParam(value = "hidden", required = false) String hidden ) {
 
@@ -57,7 +58,7 @@ public class AiController {
         Boolean isActive = active != null ? "Y".equalsIgnoreCase(active) : null;
         Boolean isHidden = hidden != null ? "Y".equalsIgnoreCase(hidden) : null;
 
-        list = aiService.getCustomAIs(isActive, isHidden); // 부분 조건 적용
+        list = aiService.getCustomAIs(isActive, isHidden, creator); // 부분 조건 적용
 
         List<CustomAIRespDto> customAIRespDtoList = list.stream()
                 .map(CustomAIRespDto::from)
@@ -90,5 +91,11 @@ public class AiController {
         return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 생성 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
     }
 
+    @PutMapping(value = "/custom/update", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> updateCustomAI(@RequestPart("jsonData") CustomAIReqDto customAIReqDto, @RequestPart(value ="image", required = false) MultipartFile file) {
+        CustomAIRespDto customAIRespDto = aiService.updateCustomAI(customAIReqDto, file);
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 변경 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
+    }
 
 }
