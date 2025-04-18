@@ -76,7 +76,7 @@ public interface AIService {
     CustomAIRespDto createCustomAI(CustomAIReqDto aiReqDto, MultipartFile file);
 
     /**
-     * CustomAI 생성
+     * CustomAI 변경
      * @return 변경한 AI 정보
      */
     CustomAIRespDto updateCustomAI(CustomAIReqDto aiReqDto, MultipartFile file);
