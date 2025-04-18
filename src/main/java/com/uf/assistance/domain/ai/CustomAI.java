@@ -141,6 +141,7 @@ public class CustomAI {
         this.baseAI = baseAI;
         this.active = customAIReqDto.isActive();
         this.hidden = customAIReqDto.isHidden();
+        this.updatedBy = updatedByuser;
         return this;
     }
 }

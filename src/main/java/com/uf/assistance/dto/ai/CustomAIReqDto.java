@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomAIReqDto {
+    private Long id;
     private String name;
     private String description;
     private MultipartFile imageFile; // MultipartFile로 변경

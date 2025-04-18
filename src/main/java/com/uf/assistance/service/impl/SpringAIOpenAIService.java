@@ -24,9 +24,9 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -180,7 +180,29 @@ public class SpringAIOpenAIService implements AIService {
             imageUrl = customAIReqDto.getImageUrl();
         }
 
-        CustomAI customAI = customAiRepository.save(customAIReqDto.toEntity(customAIReqDto, baseAI, user, imageUrl));
+        CustomAI customAI = customAiRepository.save(CustomAIReqDto.toEntity(customAIReqDto, baseAI, user, imageUrl));
         return CustomAIRespDto.from(customAI);
+    }
+
+    @Override
+    @Transactional
+    public CustomAIRespDto updateCustomAI(CustomAIReqDto customAIReqDto, MultipartFile file) {
+        BaseAI baseAI = this.getBaseAIById(customAIReqDto.getBaseAiId());
+
+        CustomAI customAI = this.getCustomAIById(customAIReqDto.getId());
+        User updateUser = userService.findUserEntityById(customAIReqDto.getUserId());
+
+        // 이미지 처리
+        String imageUrl = "";
+        if (file != null && !file.isEmpty()) {
+            // 이미지 URL 생성
+            imageUrl = fileStorageService.storeFile(file);
+        } else {
+            // 기본 이미지 URL 사용 (이미지가 없는 경우)
+            imageUrl = customAIReqDto.getImageUrl();
+        }
+        CustomAI updatedCustomAI = customAI.update(customAIReqDto, baseAI, updateUser, imageUrl);
+
+        return CustomAIRespDto.from(updatedCustomAI);
     }
 }
