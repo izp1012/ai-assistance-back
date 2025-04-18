@@ -24,9 +24,9 @@ public class CustomAIReqDto {
     private Long userId;
     private boolean active;
     private boolean hidden;
+    private boolean approved;
 
     public static CustomAI toEntity(CustomAIReqDto aiReqDto, BaseAI baseAI, User user, String imageUrl) {
-
         return CustomAI.builder()
                 .name(aiReqDto.getName())
                 .description(aiReqDto.getDescription())
@@ -36,6 +36,7 @@ public class CustomAIReqDto {
                 .baseAI(baseAI)
                 .active(aiReqDto.isActive())
                 .hidden(aiReqDto.isHidden())
+                .approved(aiReqDto.isApproved())
                 .build();
     }
 }

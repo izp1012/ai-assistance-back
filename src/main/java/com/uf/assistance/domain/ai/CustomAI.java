@@ -66,6 +66,10 @@ public class CustomAI {
     @ColumnDefault("true")
     private boolean active;
 
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean approved;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     @CreatedBy
@@ -141,6 +145,7 @@ public class CustomAI {
         this.baseAI = baseAI;
         this.active = customAIReqDto.isActive();
         this.hidden = customAIReqDto.isHidden();
+        this.approved = customAIReqDto.isApproved();
         this.updatedBy = updatedByuser;
         return this;
     }

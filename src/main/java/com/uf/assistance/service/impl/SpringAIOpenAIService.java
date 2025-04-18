@@ -20,6 +20,8 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,17 +111,15 @@ public class SpringAIOpenAIService implements AIService {
     @Override
     public BaseAI getBaseAIById(Long baseAIId) {
         logger.debug("BaseAI ID: {} 조회", baseAIId);
-        BaseAI baseAI = baseAiRepository.findById(baseAIId)
+        return baseAiRepository.findById(baseAIId)
                 .orElseThrow(() -> new ResourceNotFoundException("Base AI", "id", baseAIId));
-        return baseAI;
     }
 
     @Override
     public CustomAI getCustomAIById(Long customAIId) {
         logger.debug("CustomAI ID: {} 조회", customAIId);
-        CustomAI customAI = customAiRepository.findById(customAIId)
+        return customAiRepository.findById(customAIId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI", "id", customAIId));
-        return customAI;
     }
 
     @Override
@@ -139,8 +139,8 @@ public class SpringAIOpenAIService implements AIService {
     }
 
     @Override
-    public List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden, String userId) {
-        logger.debug("CustomAI 조회 active : {} , hidden : {}, createUserID: {}", isActive, isHidden, userId);
+    public List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden, String createdUserID) {
+        logger.debug("CustomAI 조회 active : {} , hidden : {}, createUserID: {}", isActive, isHidden, createdUserID);
 
         Specification<CustomAI> spec = Specification.where(null);
 
@@ -152,11 +152,32 @@ public class SpringAIOpenAIService implements AIService {
             spec = spec.and(CustomAiSpecification.hasHidden(isHidden));
         }
 
-        if (userId != null && !userId.isEmpty()) {
-            spec = spec.and(CustomAiSpecification.hasCreateUser(userId));
+        if (createdUserID != null && !createdUserID.isEmpty()) {
+            spec = spec.and(CustomAiSpecification.hasCreateUser(createdUserID));
         }
 
         return customAiRepository.findAll(spec);
+    }
+
+    @Override
+    public Page<CustomAI> getCustomAIsWithPagination(Boolean isActive, Boolean isHidden, String createdUserID, Pageable pageable) {
+        logger.debug("CustomAI 조회 active : {} , hidden : {}, createUserID: {}", isActive, isHidden, createdUserID);
+
+        Specification<CustomAI> spec = Specification.where(null);
+
+        if (isActive != null) {
+            spec = spec.and(CustomAiSpecification.hasActive(isActive));
+        }
+
+        if (isHidden != null) {
+            spec = spec.and(CustomAiSpecification.hasHidden(isHidden));
+        }
+
+        if (createdUserID != null && !createdUserID.isEmpty()) {
+            spec = spec.and(CustomAiSpecification.hasCreateUser(createdUserID));
+        }
+
+        return customAiRepository.findAll(spec, pageable);
     }
 
     @Override
@@ -174,7 +195,7 @@ public class SpringAIOpenAIService implements AIService {
         User user = userService.findUserEntityById(customAIReqDto.getUserId());
 
         // 이미지 처리
-        String imageUrl = "";
+        String imageUrl;
         if (file != null && !file.isEmpty()) {
             // 이미지 URL 생성
             imageUrl = fileStorageService.storeFile(file);
@@ -196,13 +217,13 @@ public class SpringAIOpenAIService implements AIService {
         User updateUser = userService.findUserEntityById(customAIReqDto.getUserId());
 
         // 이미지 처리
-        String imageUrl = "";
+        String imageUrl;
         if (file != null && !file.isEmpty()) {
             // 이미지 URL 생성
             imageUrl = fileStorageService.storeFile(file);
         } else {
             // 기본 이미지 URL 사용 (이미지가 없는 경우)
-            imageUrl = customAIReqDto.getImageUrl();
+            imageUrl = customAI.getImageUrl();
         }
         CustomAI updatedCustomAI = customAI.update(customAIReqDto, baseAI, updateUser, imageUrl);
 

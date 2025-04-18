@@ -6,6 +6,8 @@ import com.uf.assistance.dto.ai.BaseAIReqDto;
 import com.uf.assistance.dto.ai.BaseAIRespDto;
 import com.uf.assistance.dto.ai.CustomAIReqDto;
 import com.uf.assistance.dto.ai.CustomAIRespDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -58,11 +60,21 @@ public interface AIService {
     List<BaseAI> getAvailableBaseAIs();
 
     /**
-     * @Param active
-     * @Param hidden
-     * @return active, hidden 에 따른, Custom AI 목록
+     * @param isActive 활성화유무
+     * @param isHidden 숨김유무
+     * @param createdUserID 생성자ID
+     * @return active, hidden, createdUserID 에 따른, Custom AI 목록
      */
-    List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden, String creator);
+    List<CustomAI> getCustomAIs(Boolean isActive, Boolean isHidden, String createdUserID);
+
+    /**
+     * @param isActive 활성화유무
+     * @param isHidden 숨김유무
+     * @param createdUserID 생성자ID
+     * @param pageable pagination paramter
+     * @return active, hidden 에 따른, Custom AI 페이지네이션 목록
+     */
+    Page<CustomAI> getCustomAIsWithPagination(Boolean isActive, Boolean isHidden, String createdUserID, Pageable pageable);
     /**
      * AI 생성
      * @return 생성한 AI 정보

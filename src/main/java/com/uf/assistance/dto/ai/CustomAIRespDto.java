@@ -2,7 +2,10 @@ package com.uf.assistance.dto.ai;
 
 import com.uf.assistance.config.AppConfig;
 import com.uf.assistance.domain.ai.CustomAI;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +32,7 @@ public class CustomAIRespDto {
     private LocalDateTime updatedTime;
     private boolean active;
     private boolean hidden;
+    private boolean approved;
 
     private static AppConfig appConfig;
 
@@ -58,6 +62,7 @@ public class CustomAIRespDto {
                 .updatedTime(customAI.getCreatedAt())
                 .active(customAI.isActive())
                 .hidden(customAI.isHidden())
+                .approved(customAI.isApproved())
                 .build();
     }
 }

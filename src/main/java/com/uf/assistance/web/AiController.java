@@ -12,6 +12,10 @@ import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +51,7 @@ public class AiController {
 
     @GetMapping("/custom/all")
     @Transactional(readOnly = true)
-    @Tag(name = "CustomAI 조회", description = "Parameter 에 Y/N 둘 중 하나 입력")
+    @Tag(name = "CustomAI 조회", description = "Parameter 에 Y/N 둘 중 하나 입력, 사용자ID 입력")
     public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getAllCustomAIs(
             @RequestParam(value = "creator", required = false) String creator,
             @RequestParam(value = "active", required = false) String active,
@@ -63,6 +67,24 @@ public class AiController {
         List<CustomAIRespDto> customAIRespDtoList = list.stream()
                 .map(CustomAIRespDto::from)
                 .collect(Collectors.toList());
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "CustomAI 리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtoList), HttpStatus.OK);
+    }
+
+    @GetMapping("/custom/all/page")
+    @Transactional(readOnly = true)
+    @Tag(name = "CustomAI 조회 with Pagination", description = "Parameter 에 Y/N 둘 중 하나 입력, 사용자ID 입력 Pagination")
+    public ResponseEntity<ResponseDto<Page<CustomAIRespDto>>> getAllCustomAIsWithPagination(
+            @RequestParam(value = "active", required = false) String active,
+            @RequestParam(value = "hidden", required = false) String hidden,
+            @RequestParam(value = "creator", required = false) String creator,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Boolean isActive = active != null ? "Y".equalsIgnoreCase(active) : null;
+        Boolean isHidden = hidden != null ? "Y".equalsIgnoreCase(hidden) : null;
+
+        Page<CustomAI> customAIs = aiService.getCustomAIsWithPagination(isActive, isHidden, creator, pageable);
+        Page<CustomAIRespDto> customAIRespDtoList = customAIs.map(CustomAIRespDto::from);
 
         return new ResponseEntity<>(new ResponseDto<>(1, "CustomAI 리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtoList), HttpStatus.OK);
     }
