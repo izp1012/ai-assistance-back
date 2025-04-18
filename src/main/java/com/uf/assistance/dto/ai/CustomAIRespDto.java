@@ -6,6 +6,8 @@ import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -18,13 +20,15 @@ public class CustomAIRespDto {
     private String description;
     private String basePrompt;
     private String customPrompt;
-    private boolean active;
-    private boolean hidden;
     private String imageUrl;
     private Long createByUsrId;
     private String createByUsrName;
+    private LocalDateTime createdTime;
     private Long updateByUsrId;
     private String updateByUsrName;
+    private LocalDateTime updatedTime;
+    private boolean active;
+    private boolean hidden;
 
     private static AppConfig appConfig;
 
@@ -48,8 +52,10 @@ public class CustomAIRespDto {
                 .customPrompt(customAI.getCustomPrompt())
                 .createByUsrId(customAI.getCreatedBy().getId())
                 .createByUsrName(customAI.getCreatedBy().getUsername())
+                .createdTime(customAI.getCreatedAt())
                 .updateByUsrId(customAI.getUpdatedBy().getId())
                 .updateByUsrName(customAI.getUpdatedBy().getUsername())
+                .updatedTime(customAI.getCreatedAt())
                 .active(customAI.isActive())
                 .hidden(customAI.isHidden())
                 .build();

@@ -3,6 +3,8 @@ package com.uf.assistance.dto.ai;
 import com.uf.assistance.domain.ai.BaseAI;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 
 @Getter
 @Builder
@@ -16,8 +18,10 @@ public class BaseAIRespDto {
     private String basePrompt;
     private Long createByUsrId;
     private String createByUsrName;
+    private LocalDateTime createdTime;
     private Long updateByUsrId;
     private String updateByUsrName;
+    private LocalDateTime updatedTime;
     private boolean active;
 
     public static BaseAIRespDto from(BaseAI baseAI) {
@@ -30,8 +34,10 @@ public class BaseAIRespDto {
                 .basePrompt(baseAI.getBasePrompt())
                 .createByUsrId(baseAI.getCreatedBy().getId())
                 .createByUsrName(baseAI.getCreatedBy().getUsername())
+                .createdTime(baseAI.getCreatedAt())
                 .updateByUsrId(baseAI.getUpdatedBy().getId())
                 .updateByUsrName(baseAI.getUpdatedBy().getUsername())
+                .updatedTime(baseAI.getCreatedAt())
                 .active(baseAI.isActive())
                 .build();
     }

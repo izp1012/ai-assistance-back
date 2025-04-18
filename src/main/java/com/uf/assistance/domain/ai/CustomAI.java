@@ -1,6 +1,7 @@
 package com.uf.assistance.domain.ai;
 
 import com.uf.assistance.domain.user.User;
+import com.uf.assistance.dto.ai.CustomAIReqDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,7 +10,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -65,6 +68,7 @@ public class CustomAI {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
+    @CreatedBy
     private User createdBy;
 
     @CreatedDate
@@ -72,6 +76,7 @@ public class CustomAI {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
+    @LastModifiedBy
     private User updatedBy;
 
     @LastModifiedDate
@@ -126,6 +131,17 @@ public class CustomAI {
         }
 
         return basePrompt + "\n\n" + customPrompt;
+    }
+
+    public CustomAI update(CustomAIReqDto customAIReqDto, BaseAI baseAI, User updatedByuser, String imageUrl) {
+        this.name = customAIReqDto.getName();
+        this.description = customAIReqDto.getDescription();
+        this.customPrompt = customAIReqDto.getCustomPrompt();
+        this.imageUrl = imageUrl;
+        this.baseAI = baseAI;
+        this.active = customAIReqDto.isActive();
+        this.hidden = customAIReqDto.isHidden();
+        return this;
     }
 }
 
