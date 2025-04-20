@@ -20,10 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -140,7 +137,7 @@ public class VectorInterestService {
                 // 벡터 업데이트 (JDBC)
                 jdbcTemplate.update(
                         "UPDATE interest SET vector = ?::vector WHERE id = ?",
-                        formatVectorForPgVector(vector),
+                        formatVectorForPgVector2(vector),
                         interest.getId()
                 );
 
@@ -156,7 +153,7 @@ public class VectorInterestService {
                 // 벡터는 JDBC로 업데이트
                 jdbcTemplate.update(
                         "UPDATE interest SET vector = ?::vector WHERE id = ?",
-                        formatVectorForPgVector(vector),
+                        formatVectorForPgVector2(vector),
                         interest.getId()
                 );
 
@@ -198,34 +195,36 @@ public class VectorInterestService {
             try {
                 // 임베딩 가져오기
                 ResponseEntity<String> response = restTemplate.postForEntity(
-                        flaskBaseUrl + "/get_embedding",
+                        flaskBaseUrl + "/get_keyword_embeddings",
                         request,
                         String.class);
 
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode embeddingNode = rootNode.get("embedding");
+                JsonNode embeddingNode = rootNode.get("embeddings");
 
                 // 임베딩 배열로 변환
-                float[] vector = new float[embeddingNode.size()];
-                for (int i = 0; i < embeddingNode.size(); i++) {
-                    vector[i] = embeddingNode.get(i).floatValue();
+                for(int i =0; i <embeddingNode.size(); i++){
+                    JsonNode embeddingArrayNode = embeddingNode.get(i);
+
+                    float[] vector = new float[embeddingArrayNode.size()];
+                    for (int j = 0; j < embeddingArrayNode.size(); j++) {
+                        vector[j] = embeddingArrayNode.get(j).floatValue();
+                    }
+
+                    // 새 키워드 저장
+                    interest = Interest.builder()
+                            .keyword(keyword)
+                            .build();
+                    interest = interestRepository.save(interest);
+                    // 벡터 업데이트
+                    jdbcTemplate.update(
+                            "UPDATE interest SET vector = ?::vector WHERE id = ?",
+                            formatVectorForPgVector2(vector),
+                            interest.getId()
+                    );
+                    // 벡터 설정
+                    interest.setVector(vector);
                 }
-
-                // 새 키워드 저장
-                interest = Interest.builder()
-                        .keyword(keyword)
-                        .build();
-                interest = interestRepository.save(interest);
-
-                // 벡터 업데이트
-                jdbcTemplate.update(
-                        "UPDATE interest SET vector = ?::vector WHERE id = ?",
-                        formatVectorForPgVector(vector),
-                        interest.getId()
-                );
-
-                // 벡터 설정
-                interest.setVector(vector);
 
                 return interest;
             } catch (Exception e) {
@@ -355,7 +354,7 @@ public class VectorInterestService {
                 return Collections.emptyList();
             }
 
-            String formattedVector = formatVectorForPgVector(vector);
+            String formattedVector = formatVectorForPgVector2(vector);
 
             return jdbcTemplate.query(
                     "SELECT * FROM interest WHERE vector IS NOT NULL ORDER BY vector <=> ?::vector LIMIT ?",
@@ -387,9 +386,9 @@ public class VectorInterestService {
         return jdbcTemplate.query(
                 "SELECT * FROM interest WHERE 1 - (vector <=> ?::vector) >= ? ORDER BY vector <=> ?::vector",
                 new InterestRowMapper(),
-                formatVectorForPgVector(vector),
+                formatVectorForPgVector2(vector),
                 threshold,
-                formatVectorForPgVector(vector)
+                formatVectorForPgVector2(vector)
         );
     }
 
@@ -417,5 +416,9 @@ public class VectorInterestService {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    protected String formatVectorForPgVector2(float[] vector) {
+        return Arrays.toString(vector);
     }
 }
