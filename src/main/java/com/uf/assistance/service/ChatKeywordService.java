@@ -119,9 +119,11 @@ public class ChatKeywordService {
                 // 유사한 키워드가 없으면 KeywordGenerationService 호출하여 중간 키워드 생성
                 if (similarInterests.isEmpty()) {
                     // 추출된 키워드 가져오기
-                    Map extractedKeywords = (Map) midpointResult.get("extracted_keywords");
-                    List<String> text1Keywords = (List<String>) extractedKeywords.get("text1");
-                    List<String> text2Keywords = (List<String>) extractedKeywords.get("text2");
+                    Map extratedText1 = (Map) midpointResult.get("text1");
+                    Map extratedText2 = (Map) midpointResult.get("text2");
+
+                    List<String> text1Keywords = (List<String>) extratedText1.get("keywords");
+                    List<String> text2Keywords = (List<String>) extratedText2.get("keywords");
 
                     // 키워드 생성 서비스 호출
                     List<String> middleKeywords = keywordGenerationService.generateMiddleKeywords(text1Keywords, text2Keywords);
