@@ -17,12 +17,13 @@ public class CustomAiSpecification {
     }
 
     // 생성자 조건
-    public static Specification<CustomAI> hasCreateUser(String userId) {
+    public static Specification<CustomAI> hasCreateUser(String createdUserID) {
         return (root, query, criteriaBuilder) -> {
-            if (userId == null || userId.isEmpty()) {
+            if (createdUserID == null || createdUserID.isEmpty()) {
                 return null;
             }
-            return criteriaBuilder.equal(root.get("createdBy").get("id"), userId);
+
+            return criteriaBuilder.equal(root.get("createdBy").get("id"), createdUserID);
         };
     }
 }

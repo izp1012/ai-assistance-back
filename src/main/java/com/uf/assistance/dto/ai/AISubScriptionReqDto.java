@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AISubScriptionReqDto {
-    private Long userId;
+    private String userId;
     private Long customAiId;
 }

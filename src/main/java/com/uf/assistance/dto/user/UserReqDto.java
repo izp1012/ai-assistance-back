@@ -1,11 +1,11 @@
 package com.uf.assistance.dto.user;
 
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.domain.user.UserEnum;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class UserReqDto {
@@ -16,8 +16,13 @@ public class UserReqDto {
     @AllArgsConstructor
     @Builder
     public static class LoginReqDto {
+        private String userId;
         private String username;
         private String password;
+
+        public UsernamePasswordAuthenticationToken toAuthentication() {
+            return new UsernamePasswordAuthenticationToken(userId, password);
+        }
     }
 
     @Getter
@@ -41,12 +46,12 @@ public class UserReqDto {
         @NotEmpty
         private String email;
 
+
         public User toEntity(BCryptPasswordEncoder passwordEncoder) {
             return User.builder()
                     .username(username)
                     .password(passwordEncoder.encode(password))
                     .email(email)
-                    .role(UserEnum.CUSTOMER)
                     .build();
         }
     }

@@ -21,7 +21,7 @@ public class CustomAIReqDto {
     private String imageUrl; // 저장된 파일 경로를 저장할 필드
     private Long baseAiId;
     private String customPrompt;
-    private Long userId;
+    private String userId;
     private boolean active;
     private boolean hidden;
     private boolean approved;

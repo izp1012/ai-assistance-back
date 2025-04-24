@@ -16,7 +16,7 @@ public class BaseAIReqDto {
     private String description;
     private String aiProvider;
     private String basePrompt;
-    private Long userId;
+    private String userId;
     private boolean active;
 
     public static BaseAI toEntity(BaseAIReqDto aiReqDto, User user) {

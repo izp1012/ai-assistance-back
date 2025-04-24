@@ -2,26 +2,23 @@ package com.uf.assistance.service;
 
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.config.jwt.JwtProcess;
-import com.uf.assistance.config.jwt.JwtVO;
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.domain.user.UserEnum;
 import com.uf.assistance.domain.user.UserRepository;
-import com.uf.assistance.dto.user.UserReqDto.LoginReqDto;
-import com.uf.assistance.dto.user.UserRespDto.JoinRespDto;
-import com.uf.assistance.dto.user.UserReqDto.JoinReqDto;
-import com.uf.assistance.dto.user.UserRespDto.LoginRespDto;
+import com.uf.assistance.domain.user.UserRole;
+import com.uf.assistance.dto.user.JoinReqDto;
+import com.uf.assistance.dto.user.JoinRespDto;
+import com.uf.assistance.dto.user.LoginReqDto;
+import com.uf.assistance.dto.user.LoginRespDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,9 +51,8 @@ public class UserServiceTest {
                 .username("John")
                 .password(passwordEncoder.encode("1234"))  // 비밀번호 암호화 적용
                 .email("john@gmail.com")
-                .role(UserEnum.CUSTOMER)
+                .roles(Arrays.asList(UserRole.USER))
                 .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
         userRepository.save(testUser);
     }
@@ -146,5 +142,27 @@ public class UserServiceTest {
         }
 
 
+    }
+
+    @Test
+    public void findbyUserName_test() throws Exception {
+        JoinReqDto joinReqDto = JoinReqDto.builder()
+                .userId("izp1012")
+                .username("inhyo")
+                .password("1234")
+                .email("inhyo@gmail.com")
+                .build();
+
+        //stub1
+        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+
+        when(userRepository.save(any())).thenReturn(testUser);
+
+        // when
+        JoinRespDto joinRespDto = userService.join(joinReqDto);
+
+
+        //then
+        assertThat(joinRespDto.getUsername()).isEqualTo("John");
     }
 }

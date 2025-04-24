@@ -3,14 +3,17 @@ package com.uf.assistance.config.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.domain.user.UserEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
+@Component
 public class JwtProcess {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -24,8 +27,8 @@ public class JwtProcess {
         String jwtToken = JWT.create()
                 .withSubject("uf")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
-                .withClaim("id", loginUser.getUser().getId())
-                .withClaim("role", loginUser.getUser().getRole()+"")
+                .withClaim("id", loginUser.getUser().getUserId())
+                .withClaim("role", loginUser.getUser().getRoles())
                 .sign(Algorithm.HMAC512(JwtVO.SECRET));
 
         return JwtVO.TOKEN_PREFIX + jwtToken;
@@ -40,13 +43,24 @@ public class JwtProcess {
         }
 
         DecodedJWT decodeddjwt = JWT.require(Algorithm.HMAC512(JwtVO.SECRET)).build().verify(token);
-        Long id = decodeddjwt.getClaim("id").asLong();
-        String role = decodeddjwt.getClaim("role").asString();
+        String userId = decodeddjwt.getClaim("id").toString();
+        List role = Arrays.asList(decodeddjwt.getClaim("role"));
         User user = User.builder()
-                .id(id)
-                .role(UserEnum.valueOf(role))
+                .userId(userId)
+                .roles(role)
                 .build();
-        LoginUser loginUser = new LoginUser(user);
-        return loginUser;
+        return new LoginUser(user);
     }
+//    // 토큰에서 회원 정보(이메일) 추출
+//    public static String getUserEmail(String token) {
+//        try {
+//            Jws<Claims> claims = Jwts.parser()
+//                    .build().parseSignedClaims(token, JwtVO.SECRET.getBytes());
+//
+//            return claims.getBody().getSubject();
+//        } catch (Exception e) {
+//            throw new RuntimeException("유효하지 않은 토큰입니다.", e);
+//        }
+//    }
+
 }

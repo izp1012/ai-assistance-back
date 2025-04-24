@@ -24,10 +24,10 @@ public class CustomAIRespDto {
     private String basePrompt;
     private String customPrompt;
     private String imageUrl;
-    private Long createByUsrId;
+    private String createByUsrId;
     private String createByUsrName;
     private LocalDateTime createdTime;
-    private Long updateByUsrId;
+    private String updateByUsrId;
     private String updateByUsrName;
     private LocalDateTime updatedTime;
     private boolean active;
@@ -54,10 +54,10 @@ public class CustomAIRespDto {
                 .imageUrl(fullImageUrl) // 이미지 파일명
                 .basePrompt(customAI.getBaseAI().getBasePrompt())
                 .customPrompt(customAI.getCustomPrompt())
-                .createByUsrId(customAI.getCreatedBy().getId())
+                .createByUsrId(customAI.getCreatedBy().getUserId())
                 .createByUsrName(customAI.getCreatedBy().getUsername())
                 .createdTime(customAI.getCreatedAt())
-                .updateByUsrId(customAI.getUpdatedBy().getId())
+                .updateByUsrId(customAI.getUpdatedBy().getUserId())
                 .updateByUsrName(customAI.getUpdatedBy().getUsername())
                 .updatedTime(customAI.getCreatedAt())
                 .active(customAI.isActive())

@@ -1,7 +1,9 @@
 package com.uf.assistance.dto.ai;
 
 import com.uf.assistance.domain.ai.BaseAI;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
@@ -16,10 +18,10 @@ public class BaseAIRespDto {
     private String description;
     private String aiProvider;
     private String basePrompt;
-    private Long createByUsrId;
+    private String createByUsrId;
     private String createByUsrName;
     private LocalDateTime createdTime;
-    private Long updateByUsrId;
+    private String updateByUsrId;
     private String updateByUsrName;
     private LocalDateTime updatedTime;
     private boolean active;
@@ -32,10 +34,10 @@ public class BaseAIRespDto {
                 .description(baseAI.getDescription())
                 .aiProvider(baseAI.getAiProvider())
                 .basePrompt(baseAI.getBasePrompt())
-                .createByUsrId(baseAI.getCreatedBy().getId())
+                .createByUsrId(baseAI.getCreatedBy().getUserId())
                 .createByUsrName(baseAI.getCreatedBy().getUsername())
                 .createdTime(baseAI.getCreatedAt())
-                .updateByUsrId(baseAI.getUpdatedBy().getId())
+                .updateByUsrId(baseAI.getUpdatedBy().getUserId())
                 .updateByUsrName(baseAI.getUpdatedBy().getUsername())
                 .updatedTime(baseAI.getCreatedAt())
                 .active(baseAI.isActive())
