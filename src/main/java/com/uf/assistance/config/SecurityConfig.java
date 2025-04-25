@@ -42,9 +42,6 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2UserService oAuth2UserService;
 
-//    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
-//        this.authenticationConfiguration = authenticationConfiguration;
-//    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -99,7 +96,7 @@ public class SecurityConfig {
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         //필터 적용
-        http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
+//        http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
 
         http      //jwt필터를 usernamepassword인증 전에 실행
                 .addFilterBefore(new JwtRequestFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
@@ -123,12 +120,12 @@ public class SecurityConfig {
 
 
         // OAuth2 설정
-        http.oauth2Login(oauth2 -> oauth2
-                .successHandler(oAuth2SuccessHandler)
-                .userInfoEndpoint(userInfo -> userInfo
-                        .userService(oAuth2UserService)
-                )
-        );
+//        http.oauth2Login(oauth2 -> oauth2
+//                .successHandler(oAuth2SuccessHandler)
+//                .userInfoEndpoint(userInfo -> userInfo
+//                        .userService(oAuth2UserService)
+//                )
+//        );
 
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/v3/api-docs/**", // OpenAPI JSON

@@ -1,9 +1,8 @@
 package com.uf.assistance.dto.user;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -13,4 +12,5 @@ public class TokenRespDto {
 
     private String accessToken;
     private boolean isNewMember;
+    private UserRespDto user;
 }

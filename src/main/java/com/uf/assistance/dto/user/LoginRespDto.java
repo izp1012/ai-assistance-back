@@ -11,7 +11,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class LoginRespDto {
     private String userId;
     private String username;
@@ -40,8 +39,4 @@ public class LoginRespDto {
         this.social = user.isSocial();
         this.roles = user.getRoles();
     }
-
-//    public LoginRespDto from(User user) {
-//        return new LoginRespDto(user.getUserId(), user.getEmail(), user.getUsername(), user.isSocial());
-//    }
 }

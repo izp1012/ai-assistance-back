@@ -56,3 +56,5 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+jwt:
+  secret : f035a2e70278429baeabd37f23cf0441

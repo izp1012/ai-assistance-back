@@ -54,7 +54,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login2(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
-        TokenDTO tokenDTO = userService.login2(loginReqDto, response);
+        TokenDTO tokenDTO = userService.login(loginReqDto);
 
         ResponseCookie responseCookie = ResponseCookie
                 .from("refresh_token", tokenDTO.getRefreshToken())
@@ -68,8 +68,21 @@ public class UserController {
         TokenRespDto tokenResponseDTO = TokenRespDto.builder()
                 .isNewMember(false)
                 .accessToken(tokenDTO.getAccessToken())
+                .user(userService.findUserById(loginReqDto.getUserId()))
                 .build();
-        return new ResponseEntity<>(new ResponseDto<>(1, "로그인2 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), tokenResponseDTO), HttpStatus.OK);
+
+        ResponseDto<TokenRespDto> responseDto = new ResponseDto<>(
+                1,
+                "로그인2 성공",
+                CustomDateUtil.toStringFormat(LocalDateTime.now()),
+                tokenResponseDTO
+        );
+
+        // Set-Cookie 헤더 추가해서 응답 반환
+        return ResponseEntity
+                .ok()
+                .header("Set-Cookie", responseCookie.toString())
+                .body(responseDto);
     }
 
     @GetMapping("/get-current-member")
@@ -83,7 +96,7 @@ public class UserController {
     @GetMapping("/oauth2/google")
     public ResponseEntity<TokenRespDto> oauth2Google(@RequestParam("id_token") String idToken) throws ParseException, JsonProcessingException, org.json.simple.parser.ParseException {
         Map<String, Object> memberMap =  oAuth2UserService.findOrSaveMember(idToken, "google");
-        TokenDTO TokenDTO = tokenService.createToken(Optional.ofNullable((User) memberMap.get("dto")));
+        TokenDTO TokenDTO = tokenService.createToken(Optional.ofNullable((User) memberMap.get("dto")).get());
 
         ResponseCookie responseCookie = ResponseCookie
                 .from("refresh_token", TokenDTO.getRefreshToken())
