@@ -28,7 +28,7 @@ public class ScheduledJob {
 
     private String jobType; // 실행할 로직 종류 (ex: "SendChat", "CheckData")
 
-    @Lob
+    @Column(columnDefinition="TEXT")
     private String jobData; // JSON 형식의 파라미터
 
     @Setter

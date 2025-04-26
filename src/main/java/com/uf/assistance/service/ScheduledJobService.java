@@ -9,19 +9,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.quartz.SchedulerException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ScheduledJobService {
 
-    private final ScheduledJobRepository jobRepository;
+    private final ScheduledJobRepository scheduledJobRepository;
     private final DynamicSchedulerService schedulerService;
 
     @Transactional
     public SchedulerRespDto createJob(SchedulerReqDto schedulerReqDto) {
         ScheduledJob job = SchedulerReqDto.toEntity(schedulerReqDto);
-        jobRepository.save(job);
+        scheduledJobRepository.save(job);
 
         try {
             schedulerService.scheduleJob(job);
@@ -34,7 +35,7 @@ public class ScheduledJobService {
 
     @Transactional
     public String deleteJob(Long jobId) {
-        Optional<ScheduledJob> jobOpt = jobRepository.findById(jobId);
+        Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             throw new RuntimeException("존재하지 않는 스케줄입니다.");
         }
@@ -42,7 +43,7 @@ public class ScheduledJobService {
         ScheduledJob job = jobOpt.get();
         try {
             schedulerService.removeJob(job);
-            jobRepository.delete(job);
+            scheduledJobRepository.delete(job);
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 삭제 실패", e);
         }
@@ -52,14 +53,14 @@ public class ScheduledJobService {
 
     @Transactional
     public String pauseJob(Long jobId) {
-        Optional<ScheduledJob> jobOpt = jobRepository.findById(jobId);
+        Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             throw new RuntimeException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
         job.setStatus(ScheduledJob.Status.PAUSED);
-        jobRepository.save(job);
+        scheduledJobRepository.save(job);
 
         try {
             schedulerService.pauseJob(job);
@@ -72,14 +73,14 @@ public class ScheduledJobService {
 
     @Transactional
     public String resumeJob(Long jobId) {
-        Optional<ScheduledJob> jobOpt = jobRepository.findById(jobId);
+        Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             throw new RuntimeException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
         job.setStatus(ScheduledJob.Status.ENABLED);
-        jobRepository.save(job);
+        scheduledJobRepository.save(job);
 
         try {
             schedulerService.resumeJob(job);
@@ -92,14 +93,14 @@ public class ScheduledJobService {
 
     @Transactional
     public String changeJobStatus(Long jobId, ScheduledJob.Status status) {
-        Optional<ScheduledJob> jobOpt = jobRepository.findById(jobId);
+        Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             throw new RuntimeException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
         job.setStatus(status);
-        jobRepository.save(job);
+        scheduledJobRepository.save(job);
 
         try {
             schedulerService.updateJobStatus(job);
@@ -108,5 +109,19 @@ public class ScheduledJobService {
         }
 
         return "상태 변경 완료";
+    }
+
+    public SchedulerRespDto getJobByUserAndSubscription(Long aiSubscriptionId) {
+        ScheduledJob job = scheduledJobRepository.findByAiSubscriptionId(aiSubscriptionId)
+                .orElseThrow(() -> new RuntimeException("스케줄이 존재하지 않습니다."));
+
+        return SchedulerRespDto.from(job);
+    }
+
+    public List<SchedulerRespDto> getAllJobs() {
+        List<ScheduledJob> jobs = scheduledJobRepository.findAll();
+        return jobs.stream()
+                .map(SchedulerRespDto::from)
+                .toList();
     }
 }

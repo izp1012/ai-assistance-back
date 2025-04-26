@@ -15,8 +15,12 @@ public class DynamicSchedulerService {
     }
 
     public void scheduleJob(ScheduledJob job) throws SchedulerException {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
+
         JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
                 .withIdentity(job.getJobName(), job.getJobGroup())
+                .usingJobData(jobDataMap)
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
