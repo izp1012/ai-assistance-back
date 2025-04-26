@@ -7,15 +7,19 @@ import com.uf.assistance.config.jwt.JwtTokenProvider;
 import com.uf.assistance.handler.JwtAccessDeniedHandler;
 import com.uf.assistance.handler.JwtAuthenticationEntryPoint;
 import com.uf.assistance.handler.OAuth2SuccessHandler;
-import com.uf.assistance.service.OAuth2UserService;
+import com.uf.assistance.service.CustomOAuth2UserService;
+import com.uf.assistance.service.OAuth2Service;
+import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,7 +28,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -40,12 +43,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    private final OAuth2UserService oAuth2UserService;
-
-//    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
-//        this.authenticationConfiguration = authenticationConfiguration;
-//    }
-
+    private CustomOAuth2UserService oAuth2UserService;
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         log.debug("디버그: BCryptPasswordEncoder 빈 등록됨");
@@ -58,7 +56,7 @@ public class SecurityConfig {
     }
 
     //JWT 필터 등록이 필요함
-    public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
+    public static class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
         @Override
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
@@ -75,7 +73,7 @@ public class SecurityConfig {
     // JWT 서버 생성 예정. Session 미사용
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        
+
         log.debug("디버그: filterChain 빈 등록됨");
 
         // iframe 미사용
@@ -87,22 +85,24 @@ public class SecurityConfig {
         // CORS 설정
         http.cors(cors -> cors.configurationSource(configurationSource()));
 
-        http
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                        .accessDeniedHandler(jwtAccessDeniedHandler)
-                );
-
-        // JSessionId를 서버에서 관리하지 않음
-        // 추후 Token을 가지고 왔을 때 Authentication 세션을 강제로 만들어야함
+        // JSessionId를 서버에서 관리하지 않음 (JWT 사용을 위한 Stateless 설정)
         http.sessionManagement(sessionManagement ->
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        //필터 적용
+        // 폼 로그인 및 HTTP Basic 비활성화
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+
+        // 인증 및 권한 예외 처리 (한 곳으로 통합)
+        http.exceptionHandling(exception -> exception
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+        );
+        // 커스텀 보안 필터 관리자 설정
         http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
 
-        http      //jwt필터를 usernamepassword인증 전에 실행
-                .addFilterBefore(new JwtRequestFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        // JWT 요청 필터 추가 (주석 해제 권장)
+//        http.addFilterBefore(new JwtRequestFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         // 인증 실패 가로채기
         http.exceptionHandling(exception -> exception
@@ -114,21 +114,14 @@ public class SecurityConfig {
                 })
         );
 
-        // 폼 로그인 비활성화
-        http.formLogin(AbstractHttpConfigurer::disable);
-        // HTTP Basic 비활성화
-        http.httpBasic(AbstractHttpConfigurer::disable);
 
-
-
-
-        // OAuth2 설정
-        http.oauth2Login(oauth2 -> oauth2
-                .successHandler(oAuth2SuccessHandler)
-                .userInfoEndpoint(userInfo -> userInfo
-                        .userService(oAuth2UserService)
-                )
-        );
+//        // OAuth2 설정
+//        http.oauth2Login(oauth2 -> oauth2
+//                .successHandler(oAuth2SuccessHandler)
+//                .userInfoEndpoint(userInfo -> userInfo
+//                        .userService(oAuth2UserService)
+//                )
+//        );
 
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/v3/api-docs/**", // OpenAPI JSON
@@ -136,6 +129,7 @@ public class SecurityConfig {
                         "/swagger-ui/**",    // Swagger UI
                         "/swagger-ui.html",
                         "/api/login/**",
+                        "/api/login2/**",
                         "/api/join/**",
                         "/api/image/**").permitAll()
 //                .requestMatchers("/api/auth/**").permitAll()

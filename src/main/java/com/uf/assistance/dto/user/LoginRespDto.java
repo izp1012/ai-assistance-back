@@ -19,7 +19,7 @@ public class LoginRespDto {
     private String loginAt;
     private String jwtToken;
     private boolean social;
-    private List<UserRole> roles;
+    private UserRole role;
 
     public LoginRespDto(User user) {
         this.userId = user.getUserId();
@@ -28,7 +28,7 @@ public class LoginRespDto {
         this.loginAt = CustomDateUtil.toStringFormat(user.getCreatedAt());
 //        this.jwtToken = jwtToken;
         this.social = user.isSocial();
-        this.roles = user.getRoles();
+        this.role = user.getRole();
     }
 
     public LoginRespDto(User user, String jwtToken) {
@@ -38,7 +38,7 @@ public class LoginRespDto {
         this.loginAt = CustomDateUtil.toStringFormat(user.getCreatedAt());
         this.jwtToken = jwtToken;
         this.social = user.isSocial();
-        this.roles = user.getRoles();
+        this.role = user.getRole();
     }
 
 //    public LoginRespDto from(User user) {

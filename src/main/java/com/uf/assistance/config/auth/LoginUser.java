@@ -18,7 +18,7 @@ public class LoginUser implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(() -> "ROLE_" + user.getRoles());
+        authorities.add(() -> user.getRole().toString());
         return authorities;
     }
 

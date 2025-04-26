@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.domain.user.User;
+import com.uf.assistance.domain.user.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -28,7 +29,7 @@ public class JwtProcess {
                 .withSubject("uf")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
                 .withClaim("id", loginUser.getUser().getUserId())
-                .withClaim("role", loginUser.getUser().getRoles())
+                .withClaim("role", loginUser.getUser().getRole().toString())
                 .sign(Algorithm.HMAC512(JwtVO.SECRET));
 
         return JwtVO.TOKEN_PREFIX + jwtToken;
@@ -44,10 +45,11 @@ public class JwtProcess {
 
         DecodedJWT decodeddjwt = JWT.require(Algorithm.HMAC512(JwtVO.SECRET)).build().verify(token);
         String userId = decodeddjwt.getClaim("id").toString();
-        List role = Arrays.asList(decodeddjwt.getClaim("role"));
+//        List role = Arrays.asList(decodeddjwt.getClaim("role"));
+        String role =  decodeddjwt.getClaim("role").toString();
         User user = User.builder()
                 .userId(userId)
-                .roles(role)
+                .role(UserRole.USER)
                 .build();
         return new LoginUser(user);
     }

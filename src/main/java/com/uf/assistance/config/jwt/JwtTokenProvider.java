@@ -38,14 +38,6 @@ public class JwtTokenProvider {
     private static final Long accessTokenValidationTime = 30 * 60 * 1000L;   //30분
     private static final Long refreshTokenValidationTime = 7 * 24 * 60 * 60 * 1000L;  //7일
 
-//    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
-//
-//        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
-//        log.debug("secretKey 2222= "+secretKey);
-//        log.debug("keyBytes = "+keyBytes);
-//        this.encodedKey = Keys.hmacShaKeyFor(keyBytes);
-//    }
-
     public JwtTokenProvider(ApplicationContext context) {
         this.context = context;
     }
@@ -57,9 +49,8 @@ public class JwtTokenProvider {
 
     @PostConstruct
     protected void init() {
-        // secretKey를 Base64로 인코딩
-        String encodedKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
-        key = Keys.hmacShaKeyFor(encodedKey.getBytes());
+        // Plain String을 바로 byte[]로 변환하여 SecretKey 생성
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     /**
@@ -68,10 +59,10 @@ public class JwtTokenProvider {
      * @return TokenDTO
      * subject는 Form Login방식의 경우 userId, Social Login방식의 경우 email
      */
-    public TokenDTO createTokenReqDto(String subject, List<UserRole> roles) {
+    public TokenDTO createTokenReqDto(String subject, UserRole role) {
 
         //권한을 하나의 String으로 합침
-        String authority = roles.stream().map(UserRole::getType).collect(Collectors.joining(","));
+//        String authority = roles.stream().map(UserRole::getType).collect(Collectors.joining(","));
 
         //토큰 생성시간
         Instant now = Instant.from(OffsetDateTime.now());
@@ -81,7 +72,7 @@ public class JwtTokenProvider {
         //accessToken 생성
         String accessToken = Jwts.builder()
                 .setSubject(subject)
-                .claim("roles", authority)
+                .claim("roles", role)
                 .setExpiration(Date.from(now.plusMillis(accessTokenValidationTime)))
                 .signWith(key)
                 .compact();

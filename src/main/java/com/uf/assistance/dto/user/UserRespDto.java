@@ -12,10 +12,10 @@ import java.util.List;
 public class UserRespDto {
     private String userId;
     private String username;
-    private List<UserRole> roles;
+    private UserRole role;
     private boolean social;
 
     public static UserRespDto from(User user) {
-        return new UserRespDto(user.getUserId(), user.getUsername(), user.getRoles(), user.isSocial());
+        return new UserRespDto(user.getUserId(), user.getUsername(), user.getRole(), user.isSocial());
     }
 }
