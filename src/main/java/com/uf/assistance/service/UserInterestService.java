@@ -30,7 +30,7 @@ public class UserInterestService {
      */
     @Transactional
     public UserInterest incrementUserInterestCount(User user, Interest interest) {
-        logger.debug("사용자 ID: {}의 관심사 '{}' 카운트 증가", user.getId(), interest.getKeyword());
+        logger.debug("사용자 ID: {}의 관심사 '{}' 카운트 증가", user.getUserId(), interest.getKeyword());
 
         Optional<UserInterest> existingUserInterest = userInterestRepository.findByUserAndInterest(user, interest);
 
@@ -54,7 +54,7 @@ public class UserInterestService {
      * 사용자의 모든 관심사 조회 (카운트 내림차순)
      */
     public List<UserInterest> getUserInterests(User user) {
-        logger.debug("사용자 ID: {}의 모든 관심사 조회", user.getId());
+        logger.debug("사용자 ID: {}의 모든 관심사 조회", user.getUserId());
         return userInterestRepository.findByUserOrderByCountDesc(user);
     }
 

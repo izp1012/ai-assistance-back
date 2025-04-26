@@ -32,7 +32,7 @@ public class AISubscriptionController {
 
     @GetMapping("/{userId}")
     @Transactional(readOnly = true)
-    public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getSubscribedAIsbyUserId(@PathVariable Long userId) {
+    public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getSubscribedAIsbyUserId(@PathVariable String userId) {
         try {
             List<CustomAIRespDto> customAIRespDtos = aiSubscriptionService.getSubscribedAIs(userId);
             return new ResponseEntity<>(new ResponseDto<>(1, "사용자 구독리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtos), HttpStatus.OK);

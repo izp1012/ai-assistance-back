@@ -1,51 +1,21 @@
 package com.uf.assistance.dto.user;
 
 import com.uf.assistance.domain.user.User;
-import com.uf.assistance.util.CustomDateUtil;
+import com.uf.assistance.domain.user.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 public class UserRespDto {
-
-    private Long id;
+    private String userId;
     private String username;
+    private List<UserRole> roles;
+    private boolean social;
 
     public static UserRespDto from(User user) {
-        return new UserRespDto(user.getId(), user.getUsername());
-    }
-
-    @Getter
-    @Setter
-    public static class LoginRespDto {
-        private Long id;
-        private String username;
-        private String loginAt;
-        private String jwtToken;
-
-        public LoginRespDto(User user, String jwtToken) {
-            this.id = user.getId();
-            this.username = user.getUsername();
-            this.loginAt = CustomDateUtil.toStringFormat(user.getCreatedAt());
-            this.jwtToken = jwtToken;
-        }
-    }
-
-
-    @Getter
-    @Setter
-    @ToString
-    public static class JoinRespDto {
-        private Long id;
-        private String username;
-        private String email;
-
-        public JoinRespDto(User user) {
-            this.id = user.getId();
-            this.username = user.getUsername();
-            this.email = user.getEmail();
-        }
+        return new UserRespDto(user.getUserId(), user.getUsername(), user.getRoles(), user.isSocial());
     }
 }

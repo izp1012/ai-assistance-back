@@ -54,7 +54,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
     }
 
     @Override
-    public List<CustomAIRespDto> getSubscribedAIs(Long userId) {
+    public List<CustomAIRespDto> getSubscribedAIs(String userId) {
         logger.debug("사용자 ID: {}의 구독 AI 목록 조회", userId);
         User user = userService.findUserEntityById(userId);
 
@@ -70,7 +70,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
 
     @Override
-    public boolean hasUserSubscribedAI(Long userId, Long aiId) {
+    public boolean hasUserSubscribedAI(String userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 구독 여부 확인", userId, aiId);
 
         User user = userService.findUserEntityById(userId);
@@ -81,7 +81,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
     @Override
     @Transactional
-    public AISubScriptionRespDto subscribe(Long userId, Long aiId) {
+    public AISubScriptionRespDto subscribe(String userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 구독 시작", userId, aiId);
 
         User user = userService.findUserEntityById(userId);
@@ -112,12 +112,10 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
     @Override
     @Transactional
-    public void unsubscribe(Long userId, Long aiId) {
+    public void unsubscribe(String userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 구독 취소", userId, aiId);
 
-        User user = new User(); // 실제로는 UserRepository에서 조회해야 함
-        user.setId(userId);
-
+        User user = userService.findUserEntityById(userId);
         CustomAI customAI = aiService.getCustomAIById(aiId);
 
         Optional<AISubscription> subscription = aiSubscriptionRepository.findByUserAndCustomAI(user, customAI);
@@ -177,7 +175,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
     @Override
     @Transactional
-    public void updateLastUsed(Long userId, Long aiId) {
+    public void updateLastUsed(String userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 마지막 사용 시간 업데이트", userId, aiId);
 
         User user = userService.findUserEntityById(userId);

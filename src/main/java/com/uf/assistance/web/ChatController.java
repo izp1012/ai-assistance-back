@@ -1,6 +1,5 @@
 package com.uf.assistance.web;
 
-import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.ai.AISubscriptionRepository;
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.ChatRepository;
@@ -11,6 +10,7 @@ import com.uf.assistance.dto.message.ChatRespDto;
 import com.uf.assistance.service.ChatService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -22,16 +22,12 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-
-import jakarta.validation.Valid;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -105,7 +101,7 @@ public class ChatController {
     @ResponseBody
     @Transactional
     @Tag(name ="사용자별, 구독한 AI 들의 마지막 채팅 가져오기")
-    public ResponseEntity<ResponseDto<List<ChatRespDto>>> getLastMessagesbyUserID(@PathVariable Long userId) {
+    public ResponseEntity<ResponseDto<List<ChatRespDto>>> getLastMessagesbyUserID(@PathVariable String userId) {
 
         List<Chat> messages = chatService.getLastMessagesForUser(userId);
         List<ChatRespDto> chatRespDtoList = new ArrayList<>();

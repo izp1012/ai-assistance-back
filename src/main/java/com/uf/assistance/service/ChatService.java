@@ -7,6 +7,9 @@ import com.uf.assistance.domain.chat.MessageType;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.message.ChatReqDto;
 import com.uf.assistance.dto.message.ChatRespDto;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -18,11 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,8 +103,8 @@ public class ChatService {
         return chatRepository.findByAiSubscriptionIdOrderByTimestamp(aiSubscriptionId);
     }
 
-    public List<Chat> getMessagesByuserId(Long userId) {
-        return chatRepository.findBySenderIdOrderByTimestamp(userId);
+    public List<Chat> getMessagesByuserId(String userId) {
+        return chatRepository.findBySender_UserIdOrderByTimestamp(userId);
     }
 
     public Page<Chat> getMessagesByAiIdWithPagination(Long aiSubscriptionId, int page, int size) {
@@ -112,7 +112,7 @@ public class ChatService {
         return chatRepository.findByAiSubscriptionId(aiSubscriptionId, pageable);
     }
 
-    public List<Chat> getLastMessagesForUser(Long userId) {
+    public List<Chat> getLastMessagesForUser(String userId) {
         return chatRepository.findLatestMessageByCustomAiIdAndSender(userId);
     }
 }
