@@ -2,6 +2,7 @@ package com.uf.assistance.domain.ai;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.uf.assistance.domain.chat.Chat;
+import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -56,4 +57,8 @@ public class AISubscription {
     @OneToMany(mappedBy = "aiSubscription", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Chat> messages = new ArrayList<>();
+
+    // ScheduledJob과 연관 관계 설정
+    @OneToMany(mappedBy = "aiSubscription", cascade = CascadeType.ALL)
+    private List<ScheduledJob> scheduledJobs;
 }

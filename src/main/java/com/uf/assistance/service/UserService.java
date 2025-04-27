@@ -150,10 +150,10 @@ public class UserService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.debug("사용자 로드 시도 : "+username);
-        User userPS =userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("userName: " + username + "를 데이터베이스에서 찾을 수 없습니다."));
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        log.debug("사용자 로드 시도 : "+userId);
+        User userPS =userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("userId: " + userId + "를 데이터베이스에서 찾을 수 없습니다."));
         return new LoginUser(userPS);
     }
 

@@ -73,7 +73,7 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder()
                 .setSubject(subject)
                 .claim("roles", role)
-                .setExpiration(Date.from(now.plusMillis(accessTokenValidationTime)))
+                .setExpiration(Date.from(refreshTokenExpirationDate))
                 .signWith(key)
                 .compact();
 

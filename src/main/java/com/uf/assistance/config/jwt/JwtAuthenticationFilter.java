@@ -2,13 +2,19 @@ package com.uf.assistance.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.config.auth.LoginUser;
+import com.uf.assistance.domain.user.User;
+import com.uf.assistance.domain.user.UserRole;
 import com.uf.assistance.dto.user.LoginRespDto;
+import com.uf.assistance.dto.user.TokenDTO;
+import com.uf.assistance.dto.user.UserRespDto;
+import com.uf.assistance.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -16,18 +22,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import com.uf.assistance.dto.user.UserReqDto.LoginReqDto;
+import com.uf.assistance.dto.user.LoginReqDto;
 import com.uf.assistance.util.CustomResponseUtil;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Component
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AuthenticationManager authenticationManager;
+    private JwtTokenProvider jwtProvider;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    @Autowired
+    private UserService userService;
+    @Autowired
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtProvider) {
         super(authenticationManager);
+        this.authenticationManager = authenticationManager;
+        this.jwtProvider = jwtProvider;
         setFilterProcessesUrl("/api/login");
     }
 
@@ -39,18 +53,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             ObjectMapper om = new ObjectMapper();
             LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
 
-            System.out.println(loginReqDto.getUsername());
-            System.out.println(loginReqDto.getUserId());
-            System.out.println(loginReqDto.getPassword());
             //강제 로그인
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginReqDto.getUserId(), loginReqDto.getPassword());
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginReqDto.getUsername(), loginReqDto.getPassword());
             logger.debug("인증 시도 중: {}", authenticationToken);
             // UserDetailService 의 loadUserByUsername 호출
             // JWT 쓴다 하더라도, 컨트롤러 진입하면 시큐리티 권한체크, 인증체크의 도움을 받을 수 있게 세션을 만든다.
             // 이 세션의 유효기간의 request 하고, response 하면 끝
-
-//            return this.getAuthenticationManager().authenticate(authenticationToken);
             try {
                 return getAuthenticationManager().authenticate(authenticationToken);
             } catch (BadCredentialsException e) {

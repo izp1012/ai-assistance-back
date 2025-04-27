@@ -2,31 +2,30 @@ package com.uf.assistance.config;
 
 import com.uf.assistance.config.jwt.JwtAuthenticationFilter;
 import com.uf.assistance.config.jwt.JwtAuthorizationFilter;
-import com.uf.assistance.config.jwt.JwtRequestFilter;
 import com.uf.assistance.config.jwt.JwtTokenProvider;
+import com.uf.assistance.domain.user.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.uf.assistance.handler.JwtAccessDeniedHandler;
 import com.uf.assistance.handler.JwtAuthenticationEntryPoint;
 import com.uf.assistance.handler.OAuth2SuccessHandler;
-import com.uf.assistance.service.CustomOAuth2UserService;
-import com.uf.assistance.service.OAuth2Service;
-import com.uf.assistance.service.UserService;
+//import com.uf.assistance.service.CustomOAuth2UserService;
 import com.uf.assistance.util.CustomResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,7 +42,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    private CustomOAuth2UserService oAuth2UserService;
+//    private CustomOAuth2UserService customOAuth2UserService;
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         log.debug("디버그: BCryptPasswordEncoder 빈 등록됨");
@@ -57,15 +56,22 @@ public class SecurityConfig {
 
     //JWT 필터 등록이 필요함
     public static class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
+        private final JwtTokenProvider jwtTokenProvider;
+
+        public CustomSecurityFilterManager(JwtTokenProvider jwtTokenProvider) {
+            this.jwtTokenProvider = jwtTokenProvider;
+        }
+
         @Override
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
-            builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
-            builder.addFilter(new JwtAuthorizationFilter(authenticationManager));
+
+            builder.addFilter(new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider));
+            builder.addFilter(new JwtAuthorizationFilter(authenticationManager, jwtTokenProvider));
             super.configure(builder);
         }
 
-        public HttpSecurity build(){
+        public HttpSecurity build() {
             return getBuilder();
         }
     }
@@ -99,7 +105,8 @@ public class SecurityConfig {
                 .accessDeniedHandler(jwtAccessDeniedHandler)
         );
         // 커스텀 보안 필터 관리자 설정
-        http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
+//        http.with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::build);
+        http.with(new CustomSecurityFilterManager(jwtTokenProvider), CustomSecurityFilterManager::build);
 
         // JWT 요청 필터 추가 (주석 해제 권장)
 //        http.addFilterBefore(new JwtRequestFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
@@ -122,6 +129,12 @@ public class SecurityConfig {
 //                        .userService(oAuth2UserService)
 //                )
 //        );
+//        http.oauth2Login(oauth2 -> oauth2
+//                .userInfoEndpoint(userInfo -> userInfo
+//                        .userService(customOAuth2UserService)
+//                )
+//                .successHandler(oAuth2SuccessHandler)
+//        );
 
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/v3/api-docs/**", // OpenAPI JSON
@@ -131,6 +144,7 @@ public class SecurityConfig {
                         "/api/login/**",
                         "/api/login2/**",
                         "/api/join/**",
+                        "/oauth2/**",
                         "/api/image/**").permitAll()
 //                .requestMatchers("/api/auth/**").permitAll()
 //                .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())

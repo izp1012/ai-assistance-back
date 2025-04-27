@@ -1,20 +1,27 @@
 package com.uf.assistance.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.config.jwt.JwtProcess;
-import com.uf.assistance.domain.user.User;
-import com.uf.assistance.domain.user.UserRepository;
-import com.uf.assistance.domain.user.UserRole;
+import com.uf.assistance.domain.user.*;
+import com.uf.assistance.dto.user.LoginRespDto;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.security.Key;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -152,4 +159,65 @@ public class OAuth2Service {
 //
 //        return new UserRespDto.LoginRespDto(user, token);
 //    }
+
+    @Transactional(readOnly = false)
+    public Map<String, Object> findOrSaveMember(String id_token, String provider) throws ParseException, JsonProcessingException {
+        OAuth2Attribute oAuth2Attribute;
+        switch (provider) {
+            case "google":
+                oAuth2Attribute = getGoogleData(id_token);
+                break;
+            default:
+                throw new RuntimeException("제공하지 않는 인증기관입니다.");
+        }
+
+        Integer httpStatus = HttpStatus.OK.value();
+
+        User user = userRepository.findByEmail(oAuth2Attribute.getEmail())
+                .orElseGet(() -> {
+                    User newMember = User.builder()
+                            .userId(oAuth2Attribute.getUserId())
+                            .email(oAuth2Attribute.getEmail())
+                            .social(true)
+                            .provider(Provider.of(provider))
+                            .username(oAuth2Attribute.getUsername())
+                            .build();
+
+                    newMember.updateRole(UserRole.USER);
+                    return userRepository.save(newMember);
+                });
+
+        if(user.getAddressDetail() == null || user.getBirth() == null || user.getNickname() == null || user.getPhoneNo() == null || user.getStreet() == null || user.getZipcode() == null) {
+            httpStatus = HttpStatus.CREATED.value();
+        }
+
+        if(!user.isSocial()) {
+            httpStatus = HttpStatus.ACCEPTED.value();
+            user.updateSocial(Provider.of(provider));
+            userRepository.save(user);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("dto", new LoginRespDto(user));
+        result.put("status", httpStatus);
+
+        return result;
+    }
+
+    private OAuth2Attribute getGoogleData(String id_token) throws ParseException, JsonProcessingException, ParseException {
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        String googleApi = "https://oauth2.googleapis.com/tokeninfo";
+        String targetUrl = UriComponentsBuilder.fromHttpUrl(googleApi).queryParam("id_token", id_token).build().toUriString();
+
+        ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, entity, String.class);
+
+        JSONParser parser = new JSONParser();
+        JSONObject jsonBody = (JSONObject) parser.parse(response.getBody());
+
+        Map<String, Object> body = new ObjectMapper().readValue(jsonBody.toString(), Map.class);
+
+        return OAuth2Attribute.of("google", "sub", body);
+    }
 }
