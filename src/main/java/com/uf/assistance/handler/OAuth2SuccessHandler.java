@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static com.uf.assistance.domain.user.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
@@ -70,8 +68,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         //userId를 나중에 변경해야함
         String userId = oAuth2User.getAttribute("userId").toString().concat(oAuth2User.getAttribute("provider").toString());
-        List<UserRole> roles = new ArrayList<>();
-        roles.add(UserRole.USER);
 
         User user = User.builder()
                 .provider(Provider.of(oAuth2User.getAttribute("provider").toString()))
@@ -79,7 +75,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .email(oAuth2User.getAttribute("email"))
                 .username(oAuth2User.getAttribute("username"))
                 .userId(userId)
-                .roles(roles)
+                .role(UserRole.USER)
                 .build();
 
         userRepository.save(user);

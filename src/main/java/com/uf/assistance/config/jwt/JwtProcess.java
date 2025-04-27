@@ -10,9 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 @Component
 public class JwtProcess {
@@ -43,13 +41,18 @@ public class JwtProcess {
             throw new IllegalArgumentException("JWT 시크릿 키가 유효하지 않습니다.");
         }
 
-        DecodedJWT decodeddjwt = JWT.require(Algorithm.HMAC512(JwtVO.SECRET)).build().verify(token);
-        String userId = decodeddjwt.getClaim("id").toString();
-//        List role = Arrays.asList(decodeddjwt.getClaim("role"));
-        String role =  decodeddjwt.getClaim("role").toString();
+        DecodedJWT decodeddjwt = JWT.require(Algorithm.HMAC512(JwtVO.SECRET))
+                .build()
+                .verify(token);
+
+        String userId = decodeddjwt.getClaim("id").asString();
+        String role = decodeddjwt.getClaim("role").asString();
+
+        UserRole userRole = UserRole.valueOf(role); // role을 UserRole Enum으로 변환
+
         User user = User.builder()
                 .userId(userId)
-                .role(UserRole.USER)
+                .role(userRole)
                 .build();
         return new LoginUser(user);
     }

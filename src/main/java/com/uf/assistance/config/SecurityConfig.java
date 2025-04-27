@@ -3,11 +3,9 @@ package com.uf.assistance.config;
 import com.uf.assistance.config.jwt.JwtAuthenticationFilter;
 import com.uf.assistance.config.jwt.JwtAuthorizationFilter;
 import com.uf.assistance.config.jwt.JwtTokenProvider;
-import com.uf.assistance.domain.user.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.uf.assistance.handler.JwtAccessDeniedHandler;
 import com.uf.assistance.handler.JwtAuthenticationEntryPoint;
 import com.uf.assistance.handler.OAuth2SuccessHandler;
-//import com.uf.assistance.service.CustomOAuth2UserService;
 import com.uf.assistance.util.CustomResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -16,16 +14,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -144,7 +139,8 @@ public class SecurityConfig {
                         "/api/login/**",
                         "/api/login2/**",
                         "/api/join/**",
-                        "/oauth2/**",
+                        "/api/oauth2/**",
+                        "/api/oauth2/login/google",
                         "/api/image/**").permitAll()
 //                .requestMatchers("/api/auth/**").permitAll()
 //                .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())

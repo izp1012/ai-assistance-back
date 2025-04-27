@@ -32,7 +32,7 @@ public class OAuth2Controller {
 
 
     @Operation(summary = "구글 소셜 로그인")
-    @GetMapping("/oauth2/google")
+    @GetMapping("/google")
     public ResponseEntity<TokenRespDto> oauth2Google(@RequestParam("id_token") String idToken) throws JsonProcessingException, ParseException {
         Map<String, Object> userMap =  oAuth2Service.findOrSaveMember(idToken, "google");
         TokenDTO tokenDTO = tokenService.createToken((LoginRespDto) userMap.get("dto"));
