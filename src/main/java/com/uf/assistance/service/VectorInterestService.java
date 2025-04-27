@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -173,16 +174,21 @@ public class VectorInterestService {
      * 키워드로 Interest 조회 또는 생성
      */
     @Transactional
-    public Interest findOrCreateInterest(String keyword) {
+    public List<Interest> findOrCreateInterest(String keyword) {
         logger.debug("키워드 '{}' 조회 또는 생성", keyword);
 
-        // 기존 키워드 검색
-        Interest interest = interestRepository.findByKeyword(keyword);
+        List<Interest> createdInterests = new ArrayList<>();
 
-        if (interest != null) {
-            // 벡터 정보 로드
-            return loadVectorData(interest);
-        } else {
+        // 1. 기존 키워드 검색
+        Interest existingInterest = interestRepository.findByKeyword(keyword);
+
+        if (existingInterest != null) {
+            return List.of(loadVectorData(existingInterest)
+                    .orElseThrow(() -> new IllegalStateException("벡터 정보를 찾을 수 없습니다. id = " + existingInterest.getId())));
+        }
+
+        // 2. 키워드가 없으면 새로 생성
+        try {
             // 키워드 임베딩 API 호출
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -192,45 +198,50 @@ public class VectorInterestService {
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
-            try {
-                // 임베딩 가져오기
-                ResponseEntity<String> response = restTemplate.postForEntity(
-                        flaskBaseUrl + "/get_keyword_embeddings",
-                        request,
-                        String.class);
+            // 임베딩 가져오기
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    flaskBaseUrl + "/get_keyword_embeddings",
+                    request,
+                    String.class);
 
-                JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode embeddingNode = rootNode.get("embeddings");
+            JsonNode rootNode = objectMapper.readTree(response.getBody());
+            JsonNode embeddingNode = rootNode.get("embeddings");
 
-                // 임베딩 배열로 변환
-                for(int i =0; i <embeddingNode.size(); i++){
-                    JsonNode embeddingArrayNode = embeddingNode.get(i);
+            if (embeddingNode.isMissingNode() || embeddingNode.isEmpty()) {
+                throw new IllegalArgumentException("임베딩 결과가 없습니다. 키워드: " + keyword);
+            }
 
-                    float[] vector = new float[embeddingArrayNode.size()];
-                    for (int j = 0; j < embeddingArrayNode.size(); j++) {
-                        vector[j] = embeddingArrayNode.get(j).floatValue();
-                    }
+            // 임베딩 배열로 변환
+            for(int i =0; i <embeddingNode.size(); i++){
+                JsonNode embeddingArrayNode = embeddingNode.get(i);
 
-                    // 새 키워드 저장
-                    interest = Interest.builder()
-                            .keyword(keyword)
-                            .build();
-                    interest = interestRepository.save(interest);
-                    // 벡터 업데이트
-                    jdbcTemplate.update(
-                            "UPDATE interest SET vector = ?::vector WHERE id = ?",
-                            formatVectorForPgVector2(vector),
-                            interest.getId()
-                    );
-                    // 벡터 설정
-                    interest.setVector(vector);
+                float[] vector = new float[embeddingArrayNode.size()];
+                for (int j = 0; j < embeddingArrayNode.size(); j++) {
+                    vector[j] = embeddingArrayNode.get(j).floatValue();
                 }
 
-                return interest;
-            } catch (Exception e) {
-                logger.error("키워드 '{}' 임베딩 생성 중 오류: {}", keyword, e.getMessage(), e);
-                throw new RuntimeException("키워드 임베딩 생성 중 오류: " + e.getMessage(), e);
+                // 새 키워드 저장
+                Interest interest = Interest.builder()
+                        .keyword(keyword)
+                        .build();
+                interest = interestRepository.save(interest);
+                // 벡터 업데이트
+                jdbcTemplate.update(
+                        "UPDATE interest SET vector = ?::vector WHERE id = ?",
+                        formatVectorForPgVector2(vector),
+                        interest.getId()
+                );
+                // 벡터 설정
+                interest.setVector(vector);
+
+                // 리스트에 추가
+                createdInterests.add(interest);
             }
+
+            return createdInterests;
+        } catch (Exception e) {
+            logger.error("키워드 '{}' 임베딩 생성 중 오류: {}", keyword, e.getMessage(), e);
+            throw new RuntimeException("키워드 임베딩 생성 중 오류: " + e.getMessage(), e);
         }
     }
 
@@ -341,6 +352,8 @@ public class VectorInterestService {
         // 벡터 정보 로드 (JDBC)
         return interests.stream()
                 .map(this::loadVectorData)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
@@ -383,25 +396,38 @@ public class VectorInterestService {
         // 1 - (<=> 값)이 코사인 유사도가 됨
         double distanceThreshold = 1.0 - threshold;
 
-        return jdbcTemplate.query(
-                "SELECT * FROM interest WHERE 1 - (vector <=> ?::vector) >= ? ORDER BY vector <=> ?::vector",
-                new InterestRowMapper(),
-                formatVectorForPgVector2(vector),
-                threshold,
-                formatVectorForPgVector2(vector)
-        );
+        try {
+            return jdbcTemplate.query(
+                    "SELECT * FROM interest WHERE 1 - (vector <=> ?::vector) >= ? ORDER BY vector <=> ?::vector",
+                    new InterestRowMapper(),
+                    formatVectorForPgVector2(vector),
+                    threshold
+            );
+        } catch (DataIntegrityViolationException e) {
+            logger.warn("Vector similarity search failed: {}", e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            logger.error("Error during vector similarity search", e);
+            return Collections.emptyList();
+        }
     }
 
     /**
      * JPA로 로드한 Interest에 벡터 정보 추가하기
      */
-    private Interest loadVectorData(Interest interest) {
-        return jdbcTemplate.queryForObject(
-                "SELECT * FROM interest WHERE id = ?",
-                new InterestRowMapper(),
-                interest.getId()
-        );
+    private Optional<Interest> loadVectorData(Interest interest) {
+        try {
+            Interest foundInterest = jdbcTemplate.queryForObject(
+                    "SELECT * FROM interest WHERE id = ?",
+                    new InterestRowMapper(),
+                    interest.getId()
+            );
+            return Optional.ofNullable(foundInterest);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
+
 
     /**
      * float 배열을 PostgreSQL의 vector 타입으로 변환하기 위한 포맷팅
