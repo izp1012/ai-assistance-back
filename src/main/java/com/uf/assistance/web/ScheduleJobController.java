@@ -27,7 +27,15 @@ public class ScheduleJobController {
     private final ScheduledJobService scheduledJobService;
 
     @PostMapping("/create")
-    @Operation(summary = "쿼츠 스케줄러 등록", description = "크론표현식 예시 : 0 15 10 * * ?")
+    @Operation(summary = "쿼츠 스케줄러 등록",
+            description = "크론표현식 예시 : 0 15 10 * * ?,\n" +
+                    "jobData 포맷 : { \n" +
+                    "  \"prompt\": \"너는 숙련된 미국 주식 애널리스트이며, 투자자에게 유용한 정보를 제공하는 것이 목적이다. 다음 항목들을 바탕으로 사용자가 물어보는 미국 주식 종목에 대해 요약 분석해줘: 기업 개요, 최근 실적, 주요 뉴스, 주가 차트 흐름, 경쟁사 비교, 향후 투자 리스크. 초보자도 이해할 수 있도록 쉽게 설명해줘, 엔비디아와 테슬라 에 대해서 자세히설명해줘\",\n" +
+                    "  \"senderName\": \"GPT\",\n" +
+                    "  \"subscriptionId\": \"2\"\n" +
+                    "}\n, " +
+                    "job_type : SendMessageAI 로 고정" +
+                    "status : ENABLED, DISABLED, PAUSED 중 하나로 입력")
     public ResponseEntity<ResponseDto<SchedulerRespDto>> createJob(@RequestBody SchedulerReqDto schedulerReqDto) {
         SchedulerRespDto schedulerRespDto = scheduledJobService.createJob(schedulerReqDto);
 
