@@ -17,7 +17,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class DynamicQuartzJob implements Job {
@@ -32,15 +31,15 @@ public class DynamicQuartzJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException{
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
 
-        String jobType = context.getJobDetail().getKey().getGroup();
+        String jobGroup = context.getJobDetail().getKey().getGroup();
         String jobName = context.getJobDetail().getKey().getName();
         String jobData = jobDataMap.getString("jobData");
         System.out.println("jobData = "+jobData);
-        logger.info("스케줄된 작업이 실행되었습니다. Type : {}, Name : {}",jobType, jobName);
+        logger.info("스케줄된 작업이 실행되었습니다. Group : {}, Name : {}",jobGroup, jobName);
 
 
         // 로직 분기
-        switch (jobType) {
+        switch (jobGroup) {
             case "SendMessageAI":
                 JobDataMap dataMap = context.getJobDetail().getJobDataMap();
 
@@ -80,7 +79,7 @@ public class DynamicQuartzJob implements Job {
                 // 데이터 검증 로직
                 break;
             default:
-                throw new IllegalArgumentException("Unknown jobType: " + jobType);
+                throw new IllegalArgumentException("Unknown jobGroup: " + jobGroup);
         }
     }
 }
