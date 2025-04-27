@@ -5,9 +5,9 @@ import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
 import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
 import lombok.RequiredArgsConstructor;
+import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.quartz.SchedulerException;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +42,7 @@ public class ScheduledJobService {
 
         ScheduledJob job = jobOpt.get();
         try {
-            schedulerService.removeJob(job);
+            schedulerService.removeJob(job.getJobName(), job.getJobGroup());
             scheduledJobRepository.delete(job);
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 삭제 실패", e);
@@ -63,7 +63,7 @@ public class ScheduledJobService {
         scheduledJobRepository.save(job);
 
         try {
-            schedulerService.pauseJob(job);
+            schedulerService.pauseJob(job.getJobName(), job.getJobGroup());
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 일시 정지 실패", e);
         }
@@ -83,7 +83,7 @@ public class ScheduledJobService {
         scheduledJobRepository.save(job);
 
         try {
-            schedulerService.resumeJob(job);
+            schedulerService.resumeJob(job.getJobName(), job.getJobGroup());
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 재개 실패", e);
         }

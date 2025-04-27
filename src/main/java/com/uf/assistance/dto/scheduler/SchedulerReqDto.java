@@ -15,7 +15,7 @@ public class SchedulerReqDto {
     public static ScheduledJob toEntity(SchedulerReqDto schedulerReqDto) {
         return ScheduledJob.builder()
                 .jobName(schedulerReqDto.getJobName())
-                .jobGroup(schedulerReqDto.getJobGroup())
+                .jobGroup(schedulerReqDto.getJobGroup() != null ? schedulerReqDto.getJobGroup() : "DEFAULT")
                 .cronExpression(schedulerReqDto.getCronExpression())
                 .jobType(schedulerReqDto.getJobType())
                 .jobData(schedulerReqDto.jobData)
