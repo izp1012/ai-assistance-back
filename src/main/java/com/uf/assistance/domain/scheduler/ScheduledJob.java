@@ -1,6 +1,7 @@
 package com.uf.assistance.domain.scheduler;
 
 import com.uf.assistance.domain.ai.AISubscription;
+import com.uf.assistance.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -65,6 +66,10 @@ public class ScheduledJob {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public enum Status {
         NEW, ENABLED, DISABLED, PAUSED, ERROR

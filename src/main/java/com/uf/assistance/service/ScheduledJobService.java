@@ -1,16 +1,19 @@
 package com.uf.assistance.service;
 
+import com.uf.assistance.domain.scheduler.ScheduleJobSpecification;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
 import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -111,11 +114,24 @@ public class ScheduledJobService {
         return "상태 변경 완료";
     }
 
-    public SchedulerRespDto getJobByUserAndSubscription(Long aiSubscriptionId) {
-        ScheduledJob job = scheduledJobRepository.findByAiSubscriptionId(aiSubscriptionId)
-                .orElseThrow(() -> new RuntimeException("스케줄이 존재하지 않습니다."));
+    public List<SchedulerRespDto> getJobByUserAndSubscription(String userId, Long aiSubscriptionId) {
+        Specification<ScheduledJob> spec = Specification.where(null);
 
-        return SchedulerRespDto.from(job);
+        if (userId != null) {
+            spec = spec.and(ScheduleJobSpecification.hasUserId(userId));
+        }
+
+        if (aiSubscriptionId != null) {
+            spec = spec.and(ScheduleJobSpecification.hasAiSubscriptionId(aiSubscriptionId));
+        }
+
+        List<ScheduledJob> list = scheduledJobRepository.findAll(spec);
+
+        List<SchedulerRespDto> customAIRespDtoList = list.stream()
+                .map(SchedulerRespDto::from)
+                .collect(Collectors.toList());
+
+        return customAIRespDtoList;
     }
 
     public List<SchedulerRespDto> getAllJobs() {

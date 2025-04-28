@@ -1,5 +1,6 @@
 package com.uf.assistance.domain.scheduler;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +11,7 @@ import java.util.Optional;
  */
 @Repository
 public interface ScheduledJobRepository extends JpaRepository<ScheduledJob, Long> {
-    Optional<ScheduledJob> findByAiSubscriptionId(Long aiSubscriptionId);
+    List<ScheduledJob> findAll(Specification spec);
 
     /**
      * 특정 상태의 모든 작업을 찾음
