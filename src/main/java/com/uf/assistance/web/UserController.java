@@ -82,20 +82,20 @@ public class UserController {
     @GetMapping("/oauth2/google")
     public ResponseEntity<TokenRespDto> oauth2Google(@RequestParam("id_token") String idToken) throws ParseException, JsonProcessingException, org.json.simple.parser.ParseException {
         Map<String, Object> memberMap =  oAuth2UserService.findOrSaveMember(idToken, "google");
-        TokenDTO TokenDTO = tokenService.createToken((User) memberMap.get("dto"));
+        TokenDTO tokenDTO = tokenService.createToken((User) memberMap.get("dto"));
 
         ResponseCookie responseCookie = ResponseCookie
-                .from("refresh_token", TokenDTO.getRefreshToken())
+                .from("refresh_token", tokenDTO.getRefreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .maxAge(TokenDTO.getDuration())
+                .maxAge(tokenDTO.getDuration())
                 .path("/")
                 .build();
 
         TokenRespDto tokenRespDto = TokenRespDto.builder()
                 .isNewMember(false)
-                .accessToken(TokenDTO.getAccessToken())
+                .accessToken(tokenDTO.getAccessToken())
                 .build();
 
         return ResponseEntity.status((Integer) memberMap.get("status")).header("Set-Cookie", responseCookie.toString()).body(tokenRespDto);

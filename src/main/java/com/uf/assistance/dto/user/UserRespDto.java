@@ -5,8 +5,6 @@ import com.uf.assistance.domain.user.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 @AllArgsConstructor
 public class UserRespDto {
