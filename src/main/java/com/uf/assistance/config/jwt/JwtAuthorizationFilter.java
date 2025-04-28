@@ -15,8 +15,11 @@ import java.io.IOException;
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager) {
+    private final JwtTokenProvider jwtProvider;
+
+    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtProvider) {
         super(authenticationManager);
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
@@ -24,7 +27,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             throws IOException, ServletException {
 
         String token = request.getHeader("Authorization");
-        System.out.println("token = "+token);
         // JWT가 존재하지 않으면 필터 체인 계속 진행
         if (token == null || !token.startsWith(JwtVO.TOKEN_PREFIX)) {
             chain.doFilter(request, response);

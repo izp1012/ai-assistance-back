@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.user.*;
-import com.uf.assistance.service.OAuth2UserService;
-import com.uf.assistance.service.TokenService;
 import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,8 +34,6 @@ import java.util.Optional;
 public class UserController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final UserService userService;
-    private final TokenService tokenService;
-    private final OAuth2UserService oAuth2UserService;
 
     @PostMapping("/auth/join")
     public ResponseEntity<?> join(HttpServletRequest request, @RequestBody @Valid JoinReqDto joinReqDto, BindingResult bindingResult){
@@ -46,15 +41,15 @@ public class UserController {
         return new ResponseEntity<>(new ResponseDto<>(1, "회원가입 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), joinRespDto), HttpStatus.CREATED);
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
         LoginRespDto loginRespDto = userService.login(loginReqDto, response);
         return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), loginRespDto), HttpStatus.OK);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/login2")
     public ResponseEntity<?> login2(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
-        TokenDTO tokenDTO = userService.login(loginReqDto);
+        TokenDTO tokenDTO = userService.login2(loginReqDto, response);
 
         ResponseCookie responseCookie = ResponseCookie
                 .from("refresh_token", tokenDTO.getRefreshToken())
@@ -68,21 +63,8 @@ public class UserController {
         TokenRespDto tokenResponseDTO = TokenRespDto.builder()
                 .isNewMember(false)
                 .accessToken(tokenDTO.getAccessToken())
-                .user(userService.findUserById(loginReqDto.getUserId()))
                 .build();
-
-        ResponseDto<TokenRespDto> responseDto = new ResponseDto<>(
-                1,
-                "로그인2 성공",
-                CustomDateUtil.toStringFormat(LocalDateTime.now()),
-                tokenResponseDTO
-        );
-
-        // Set-Cookie 헤더 추가해서 응답 반환
-        return ResponseEntity
-                .ok()
-                .header("Set-Cookie", responseCookie.toString())
-                .body(responseDto);
+        return new ResponseEntity<>(new ResponseDto<>(1, "로그인2 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), tokenResponseDTO), HttpStatus.OK);
     }
 
     @GetMapping("/get-current-member")
@@ -92,26 +74,26 @@ public class UserController {
         return user.getUserId();
     }
 
-    @Operation(summary = "구글 소셜 로그인")
-    @GetMapping("/oauth2/google")
-    public ResponseEntity<TokenRespDto> oauth2Google(@RequestParam("id_token") String idToken) throws ParseException, JsonProcessingException, org.json.simple.parser.ParseException {
-        Map<String, Object> memberMap =  oAuth2UserService.findOrSaveMember(idToken, "google");
-        TokenDTO TokenDTO = tokenService.createToken(Optional.ofNullable((User) memberMap.get("dto")).get());
-
-        ResponseCookie responseCookie = ResponseCookie
-                .from("refresh_token", TokenDTO.getRefreshToken())
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .maxAge(TokenDTO.getDuration())
-                .path("/")
-                .build();
-
-        TokenRespDto tokenRespDto = TokenRespDto.builder()
-                .isNewMember(false)
-                .accessToken(TokenDTO.getAccessToken())
-                .build();
-
-        return ResponseEntity.status((Integer) memberMap.get("status")).header("Set-Cookie", responseCookie.toString()).body(tokenRespDto);
-    }
+//    @Operation(summary = "구글 소셜 로그인")
+//    @GetMapping("/oauth2/google")
+//    public ResponseEntity<TokenRespDto> oauth2Google(@RequestParam("id_token") String idToken) throws ParseException, JsonProcessingException, org.json.simple.parser.ParseException {
+//        Map<String, Object> memberMap =  oAuth2UserService.findOrSaveMember(idToken, "google");
+//        TokenDTO TokenDTO = tokenService.createToken(Optional.ofNullable((User) memberMap.get("dto")));
+//
+//        ResponseCookie responseCookie = ResponseCookie
+//                .from("refresh_token", TokenDTO.getRefreshToken())
+//                .httpOnly(true)
+//                .secure(true)
+//                .sameSite("None")
+//                .maxAge(TokenDTO.getDuration())
+//                .path("/")
+//                .build();
+//
+//        TokenRespDto tokenRespDto = TokenRespDto.builder()
+//                .isNewMember(false)
+//                .accessToken(TokenDTO.getAccessToken())
+//                .build();
+//
+//        return ResponseEntity.status((Integer) memberMap.get("status")).header("Set-Cookie", responseCookie.toString()).body(tokenRespDto);
+//    }
 }

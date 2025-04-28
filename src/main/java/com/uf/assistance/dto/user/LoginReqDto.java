@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 public class LoginReqDto {
 
     private String userId;
-    private String username;
     private String password;
 
     public UsernamePasswordAuthenticationToken toAuthentication() {

@@ -17,7 +17,7 @@ public class UserReqDto {
     @Builder
     public static class LoginReqDto {
         private String userId;
-        private String username;
+//        private String username;
         private String password;
 
         public UsernamePasswordAuthenticationToken toAuthentication() {

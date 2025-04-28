@@ -31,6 +31,30 @@ spring:
       '[hibernate.query.timeout]': 10000  # 쿼리 타임아웃: 10초
       '[hibernate.jdbc.timeout]': 10  # 초 단위
     show-sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 830719346682-3mpsdtr9tpka8nr95us4k2ok3r1bgpnp.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+quartz:
+  job-store-type: jdbc
+  jdbc:
+    initialize-schema: always # 실행 시 테이블 자동 생성 (운영 환경에서는 별도 관리 권장)
+  properties:
+    org:
+      quartz:
+        scheduler:
+          instanceName: QuartzScheduler
+        jobStore:
+          class: org.quartz.impl.jdbcjobstore.JobStoreTX
+          driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+        threadPool:
+          threadCount: 5
   output:
     ansi:
       enabled: always
@@ -56,5 +80,3 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
-jwt:
-  secret : f035a2e70278429baeabd37f23cf0441

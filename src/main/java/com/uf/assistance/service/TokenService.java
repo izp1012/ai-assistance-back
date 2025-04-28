@@ -5,6 +5,7 @@ import com.uf.assistance.domain.token.RefreshToken;
 import com.uf.assistance.domain.token.RefreshTokenRepository;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
+import com.uf.assistance.dto.user.LoginReqDto;
 import com.uf.assistance.dto.user.LoginRespDto;
 import com.uf.assistance.dto.user.TokenDTO;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,8 @@ public class TokenService {
     private final UserRepository userRepository;
 
     public TokenDTO createToken(LoginRespDto loginRespDto) {
-        TokenDTO tokenDTO = tokenProvider.createTokenReqDto(loginRespDto.getUserId(), loginRespDto.getRoles());
+        TokenDTO tokenDTO = tokenProvider.createTokenReqDto(loginRespDto.getUserId(), loginRespDto.getRole());
         User user = userRepository.findByUserId(loginRespDto.getUserId()).orElseThrow(() -> new RuntimeException("Wrong Access (user does not exist)"));
-
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(tokenDTO.getRefreshToken())
@@ -34,7 +34,7 @@ public class TokenService {
     }
 
     public TokenDTO createToken(User user) {
-        TokenDTO tokenDTO = tokenProvider.createTokenReqDto(user.getUserId(), user.getRoles());
+        TokenDTO tokenDTO = tokenProvider.createTokenReqDto(user.getUserId(), user.getRole());
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(tokenDTO.getRefreshToken())
@@ -60,7 +60,7 @@ public class TokenService {
         }
 
         User user = userRepository.findByUserId(refreshToken.getUser().getUserId()).orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
-        TokenDTO tokenDto = tokenProvider.createTokenReqDto(user.getUserId(), user.getRoles());
+        TokenDTO tokenDto = tokenProvider.createTokenReqDto(user.getUserId(), user.getRole());
 
         RefreshToken newRefreshToken = refreshToken.updateValue(tokenDto.getRefreshToken());
         refreshTokenRepository.save(newRefreshToken);

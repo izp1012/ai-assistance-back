@@ -38,10 +38,9 @@ public class User { //extends 시간설정 (상속)
     @Column(nullable = false, length = 30)
     private String email;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @ElementCollection
-    private List<UserRole> roles; //ADMIN, CUSTOMER, DEVELOPER
+    @Enumerated(EnumType.STRING)
+    private UserRole role; //ADMIN, CUSTOMER, DEVELOPER
 
     @Column
     private boolean social;
@@ -63,12 +62,12 @@ public class User { //extends 시간설정 (상속)
     private LocalDateTime updatedAt;
 
     @Builder
-    public User(String userId, String username, String password, String email, List<UserRole> roles, boolean social, Provider provider, LocalDateTime createdAt){
+    public User(String userId, String username, String password, String email, UserRole role, boolean social, Provider provider, LocalDateTime createdAt){
         this.userId = userId;
         this.username = username;
         this.password = password;
         this.email = email;
-        this.roles = roles;
+        this.role = role;
         this.social = social;
         this.provider = provider;
         this.createdAt = createdAt;
@@ -81,17 +80,20 @@ public class User { //extends 시간설정 (상속)
         return this;
     }
 
+//    public void updateRole(UserRole role) {
+//        if(this.roles == null) {
+//            this.roles = new ArrayList<>();
+//        }
+//
+//        if(this.roles.contains(role)) {
+//            this.roles.remove(role);
+//        }
+//        else {
+//            this.roles.add(role);
+//        }
+//    }
     public void updateRole(UserRole role) {
-        if(this.roles == null) {
-            this.roles = new ArrayList<>();
-        }
-
-        if(this.roles.contains(role)) {
-            this.roles.remove(role);
-        }
-        else {
-            this.roles.add(role);
-        }
+        this.role = role;
     }
 
     public void updateSocial(Provider provider) {

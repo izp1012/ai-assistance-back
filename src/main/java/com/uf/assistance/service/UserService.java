@@ -2,7 +2,6 @@ package com.uf.assistance.service;
 
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.config.jwt.JwtProcess;
-import com.uf.assistance.config.jwt.JwtTokenProvider;
 import com.uf.assistance.config.jwt.JwtVO;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
@@ -15,8 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,20 +26,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Primary
 public class UserService implements UserDetailsService {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final TokenService tokenService;
-    private final JwtTokenProvider jwtTokenProvider;
 
     //서비스는 DTO로 요청받고 DTO로 응답한다.
     @Transactional //트랜잭션이 메서드 시작할때, 시작되고, 종료될 때 함께 종료
@@ -60,8 +57,9 @@ public class UserService implements UserDetailsService {
         // 3. dto 응답
         return new JoinRespDto(user);
     }
+
     public LoginRespDto login(LoginReqDto loginReqDto, HttpServletResponse response) {
-        Optional<User> userOptional = userRepository.findByUsername(loginReqDto.getUsername());
+        Optional<User> userOptional = userRepository.findByUserId(loginReqDto.getUserId());
 
         if(userOptional.isEmpty()) {
             throw new CustomApiException("사용자를 찾을 수 없습니다");
@@ -87,11 +85,35 @@ public class UserService implements UserDetailsService {
 
         return new LoginRespDto(user, jwtToken);
     }
-    @Transactional
-    public TokenDTO login(LoginReqDto loginReqDto) {
-        User user = userRepository.findByUserId(loginReqDto.getUserId()).get();
-        return tokenService.createToken(user);
+
+    public TokenDTO login2(LoginReqDto loginReqDto, HttpServletResponse response) {
+        Optional<User> userOptional = userRepository.findByUserId(loginReqDto.getUserId());
+
+        if(userOptional.isEmpty()) {
+            throw new CustomApiException("사용자를 찾을 수 없습니다");
+        }
+
+        User user = userOptional.get();
+
+        if(!passwordEncoder.matches(loginReqDto.getPassword(), user.getPassword())) {
+            throw new CustomApiException("비밀번호가 일치하지 않습니다");
+        }
+
+//        // JWT 생성
+        LoginUser loginUser = new LoginUser(user);
+//        String jwtToken = JwtProcess.create(loginUser);
+//
+//        // HTTP 응답 헤더에 JWT 추가
+//        response.addHeader(JwtVO.HEADER_STRING, JwtVO.TOKEN_PREFIX + jwtToken);
+
+        // SecurityContextHolder 에 저장
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        ;
+        return tokenService.createToken(userOptional.get());
     }
+
 
     public User findUserbyUsername(String username) {
         Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username)
@@ -129,18 +151,10 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        return userRepository.findByUserId(userId)
-                .map(this::createUserDetails)
+        log.debug("사용자 로드 시도 : "+userId);
+        User userPS =userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("userId: " + userId + "를 데이터베이스에서 찾을 수 없습니다."));
+        return new LoginUser(userPS);
     }
 
-    private UserDetails createUserDetails(User user) {
-        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getRoles().stream().map(UserRole::getType).collect(Collectors.joining(",")));
-
-        return new org.springframework.security.core.userdetails.User(
-                user.getUserId(),
-                user.getPassword(),
-                Collections.singleton(grantedAuthority)
-        );
-    }
 }
