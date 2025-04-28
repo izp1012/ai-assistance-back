@@ -3,11 +3,8 @@ package com.uf.assistance.dto.user;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRole;
 import com.uf.assistance.util.CustomDateUtil;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
