@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +18,19 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
+        SecurityScheme securityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .in(SecurityScheme.In.HEADER)
+                .name("Authorization");
+
+        // Security Requirement 정의
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("BearerAuth");
+
         return new OpenAPI()
+                .addSecurityItem(securityRequirement)
+                .schemaRequirement("BearerAuth", securityScheme)
                 .info(new Info()
                         .title("AI Subscription API")
                         .version("1.0")
