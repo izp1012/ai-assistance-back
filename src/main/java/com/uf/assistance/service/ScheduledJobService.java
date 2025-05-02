@@ -1,8 +1,10 @@
 package com.uf.assistance.service;
 
+import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.scheduler.ScheduleJobSpecification;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
+import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +23,15 @@ public class ScheduledJobService {
 
     private final ScheduledJobRepository scheduledJobRepository;
     private final DynamicSchedulerService schedulerService;
+    private final AISubscriptionService aiSubscriptionService;
+    private final UserService userService;
 
     @Transactional
     public SchedulerRespDto createJob(SchedulerReqDto schedulerReqDto) {
-        ScheduledJob job = SchedulerReqDto.toEntity(schedulerReqDto);
+        AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(schedulerReqDto.getAisubscriptionId());
+        User user = userService.findUserEntityById(schedulerReqDto.getUserId());
+
+        ScheduledJob job = SchedulerReqDto.toEntity(schedulerReqDto, aiSubscription, user);
         scheduledJobRepository.save(job);
 
         try {

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "scheduled_jobs", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"job_name", "job_group"})
+        @UniqueConstraint(columnNames = {"job_name", "job_group", "ai_subscription_id"})
 })
 @Builder
 @Getter
