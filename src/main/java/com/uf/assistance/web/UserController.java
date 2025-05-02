@@ -1,6 +1,6 @@
 package com.uf.assistance.web;
 
-import com.uf.assistance.domain.user.User;
+import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.user.*;
 import com.uf.assistance.service.OAuth2UserService;
@@ -67,10 +67,10 @@ public class UserController {
         return new ResponseEntity<>(new ResponseDto<>(1, "로그인2 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), tokenResponseDTO), HttpStatus.OK);
     }
 
-    @GetMapping("/get-current-member")
-    public String getCurrentMember(Authentication authentication){
-        logger.info("authentication.getName() : " + authentication.getName());
-        User user = userService.findUserbyUsername(authentication.getName());
-        return user.getUserId();
+    @GetMapping("/auth/get-current-member")
+    public UserRespDto getCurrentMember(Authentication authentication){
+        String userId = ((LoginUser) authentication.getPrincipal()).getUser().getUserId();
+        logger.debug("authentication.getName() : " + userId);
+        return userService.findUserById(userId);
     }
 }
