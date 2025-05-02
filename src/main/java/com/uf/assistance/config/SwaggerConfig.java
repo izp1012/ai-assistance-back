@@ -43,6 +43,7 @@ public class SwaggerConfig {
                 // 추가 설정 속성
                 // API가 배포된 서버들을 정의
                 .servers(List.of(
+                        new Server().url("https://3.39.234.47:8081").description("Develop Server"),  // 개발 서버 설정
                         new Server().url("http://localhost:8081").description("Local Server"),  // 로컬 서버 설정
                         new Server().url("https://www.uf-production.com").description("Production Server")  // 프로덕션 서버 설정
                 ));
