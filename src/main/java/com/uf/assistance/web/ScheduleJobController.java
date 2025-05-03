@@ -68,6 +68,13 @@ public class ScheduleJobController {
         return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 상태 변경 성공" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
     }
 
+    @PostMapping("/{id}/onetime")
+    @Operation(summary = "스케줄 1회 실행 ")
+    public ResponseEntity<ResponseDto<String>> triggerJobNow(@PathVariable Long id) {
+        String resultMessage = scheduledJobService.triggerJobNow(id, ScheduledJob.Status.ONETIME);
+        return new ResponseEntity<>(new ResponseDto<>(1, "작업 수동 실행 완료" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+    }
+
     @GetMapping("/job")
     @Operation(summary = "사용자 ID + AISubscription 기준 스케줄러 조희")
     public ResponseEntity<ResponseDto<List<SchedulerRespDto>>> getJobByUserAndSubscription(

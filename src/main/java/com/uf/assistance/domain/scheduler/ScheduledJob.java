@@ -72,7 +72,7 @@ public class ScheduledJob {
     private User user;
 
     public enum Status {
-        NEW, ENABLED, DISABLED, PAUSED, ERROR
+        NEW, ENABLED, DISABLED, PAUSED, ERROR, ONETIME
     }
 
     @PrePersist

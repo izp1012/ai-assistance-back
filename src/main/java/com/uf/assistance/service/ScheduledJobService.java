@@ -121,6 +121,24 @@ public class ScheduledJobService {
         return "상태 변경 완료";
     }
 
+    @Transactional
+    public String triggerJobNow(Long jobId, ScheduledJob.Status status) {
+        Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
+        if (jobOpt.isEmpty()) {
+            throw new RuntimeException("존재하지 않는 스케줄입니다.");
+        }
+
+        ScheduledJob job = jobOpt.get();
+
+        try {
+            schedulerService.triggerOneTimeJob(job);
+        } catch (SchedulerException e) {
+            throw new RuntimeException("작업 수동 실행 실패", e);
+        }
+
+        return "작업 수동 실행 완료";
+    }
+
     public List<SchedulerRespDto> getJobByUserAndSubscription(String userId, Long aiSubscriptionId) {
         Specification<ScheduledJob> spec = Specification.where(null);
 

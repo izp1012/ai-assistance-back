@@ -34,7 +34,6 @@ public class DynamicQuartzJob implements Job {
         String jobGroup = context.getJobDetail().getKey().getGroup();
         String jobName = context.getJobDetail().getKey().getName();
         String jobData = jobDataMap.getString("jobData");
-        System.out.println("jobData = "+jobData);
         logger.info("스케줄된 작업이 실행되었습니다. Group : {}, Name : {}",jobGroup, jobName);
 
 

@@ -39,6 +39,26 @@ public class DynamicSchedulerService {
         scheduler.scheduleJob(jobDetail, trigger);
     }
 
+    /**
+     * Quartz에 등록되지 않은 Job을 단건 실행한다.
+     */
+    public void triggerOneTimeJob(ScheduledJob job) throws SchedulerException {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
+
+        JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
+                .withIdentity(job.getJobName(), job.getJobGroup())
+                .usingJobData(jobDataMap)
+                .build();
+
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(job.getJobName() + "_Trigger", job.getJobGroup())
+                .startNow()
+                .build();
+
+        scheduler.scheduleJob(jobDetail, trigger);
+    }
+
     @Transactional
     public boolean removeJob(String jobName, String groupName) throws SchedulerException {
         JobKey jobKey = new JobKey(jobName, groupName);
@@ -102,21 +122,6 @@ public class DynamicSchedulerService {
 
     public void updateJobStatus(ScheduledJob job) throws SchedulerException {
         // 상태 업데이트가 Quartz에 어떻게 반영되는지 구현해야 함.
-    }
-
-
-    /**
-     * 작업 수동 실행
-     */
-    public void triggerJobNow(String jobName, String groupName) throws SchedulerException {
-        JobKey jobKey = new JobKey(jobName, groupName);
-
-        if (scheduler.checkExists(jobKey)) {
-            scheduler.triggerJob(jobKey);
-            logger.info("Job triggered manually: {}", jobName);
-        } else {
-            throw new JobExecutionException("Job not found: " + jobName);
-        }
     }
 
     /**
