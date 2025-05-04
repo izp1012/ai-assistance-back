@@ -22,11 +22,15 @@ import java.util.HashMap;
 public class DynamicQuartzJob implements Job {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private ChatService chatService;
+    private final ChatService chatService;
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public DynamicQuartzJob(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
+        this.chatService = chatService;
+        this.messagingTemplate = messagingTemplate;
+    }
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException{
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
