@@ -4,9 +4,11 @@ import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.scheduler.ScheduleJobSpecification;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
+import com.uf.assistance.domain.scheduler.Status;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
+import com.uf.assistance.handler.exception.CustomApiException;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,16 +33,23 @@ public class ScheduledJobService {
         AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(schedulerReqDto.getAisubscriptionId());
         User user = userService.findUserEntityById(schedulerReqDto.getUserId());
 
-        ScheduledJob job = SchedulerReqDto.toEntity(schedulerReqDto, aiSubscription, user);
-        scheduledJobRepository.save(job);
+        String jobName = schedulerReqDto.getJobName();
+        String jobGroup = schedulerReqDto.getJobGroup();
 
-        try {
-            schedulerService.scheduleJob(job);
-        } catch (SchedulerException e) {
-            throw new RuntimeException("스케줄 등록 실패", e);
+        Optional<ScheduledJob> jobOpt = scheduledJobRepository.findByJobNameAndJobGroupAndAiSubscription(jobName, jobGroup, aiSubscription);
+        if (jobOpt.isEmpty()) {
+            ScheduledJob job = SchedulerReqDto.toEntity(schedulerReqDto, aiSubscription, user);
+            scheduledJobRepository.save(job);
+
+            try {
+                schedulerService.scheduleJob(job);
+                return SchedulerRespDto.from(job);
+            } catch (SchedulerException e) {
+                throw new RuntimeException("스케줄 등록 실패", e);
+            }
+        }else{
+            throw new CustomApiException("이미 등록된 스케줄입니다.");
         }
-
-        return SchedulerRespDto.from(job);
     }
 
     @Transactional
@@ -69,7 +78,7 @@ public class ScheduledJobService {
         }
 
         ScheduledJob job = jobOpt.get();
-        job.setStatus(ScheduledJob.Status.PAUSED);
+        job.setStatus(Status.PAUSED);
         scheduledJobRepository.save(job);
 
         try {
@@ -89,7 +98,7 @@ public class ScheduledJobService {
         }
 
         ScheduledJob job = jobOpt.get();
-        job.setStatus(ScheduledJob.Status.ENABLED);
+        job.setStatus(Status.ENABLED);
         scheduledJobRepository.save(job);
 
         try {
@@ -102,7 +111,7 @@ public class ScheduledJobService {
     }
 
     @Transactional
-    public String changeJobStatus(Long jobId, ScheduledJob.Status status) {
+    public String changeJobStatus(Long jobId, Status status) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             throw new RuntimeException("존재하지 않는 스케줄입니다.");
@@ -122,7 +131,7 @@ public class ScheduledJobService {
     }
 
     @Transactional
-    public String triggerJobNow(Long jobId, ScheduledJob.Status status) {
+    public String triggerJobNow(Long jobId, Status status) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             throw new RuntimeException("존재하지 않는 스케줄입니다.");

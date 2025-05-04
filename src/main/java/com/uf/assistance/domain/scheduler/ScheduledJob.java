@@ -71,10 +71,6 @@ public class ScheduledJob {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public enum Status {
-        NEW, ENABLED, DISABLED, PAUSED, ERROR, ONETIME
-    }
-
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

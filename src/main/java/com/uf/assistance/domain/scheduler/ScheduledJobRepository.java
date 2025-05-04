@@ -1,5 +1,6 @@
 package com.uf.assistance.domain.scheduler;
 
+import com.uf.assistance.domain.ai.AISubscription;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -18,7 +19,17 @@ public interface ScheduledJobRepository extends JpaRepository<ScheduledJob, Long
      * @param status 작업 상태
      * @return 해당 상태의 작업 목록
      */
-    List<ScheduledJob> findByStatus(ScheduledJob.Status status);
+    List<ScheduledJob> findByStatus(Status status);
+
+    /**
+     * 작업 이름과 그룹, AISubscription 으로 작업을 찾음
+     * @param jobName 작업 이름
+     * @param jobGroup 작업 그룹
+     * @param aiSubscription 비서 구독
+     * @return 해당 작업
+     */
+    Optional<ScheduledJob> findByJobNameAndJobGroupAndAiSubscription(String jobName, String jobGroup, AISubscription aiSubscription);
+
 
     /**
      * 작업 이름과 그룹으로 작업을 찾음
@@ -55,7 +66,7 @@ public interface ScheduledJobRepository extends JpaRepository<ScheduledJob, Long
      * @param jobGroup 작업 그룹
      * @return 해당 상태와 그룹의 작업 목록
      */
-    List<ScheduledJob> findByStatusAndJobGroup(ScheduledJob.Status status, String jobGroup);
+    List<ScheduledJob> findByStatusAndJobGroup(Status status, String jobGroup);
 
     /**
      * 해당 작업 이름과 그룹의 작업이 존재하는지 확인

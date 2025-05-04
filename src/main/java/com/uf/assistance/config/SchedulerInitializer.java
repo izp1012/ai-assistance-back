@@ -2,6 +2,7 @@ package com.uf.assistance.config;
 
 import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
+import com.uf.assistance.domain.scheduler.Status;
 import com.uf.assistance.service.DynamicSchedulerService;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
@@ -20,7 +21,7 @@ public class SchedulerInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        List<ScheduledJob> jobs = scheduledJobRepository.findByStatus(ScheduledJob.Status.ENABLED);
+        List<ScheduledJob> jobs = scheduledJobRepository.findByStatus(Status.ENABLED);
         for (ScheduledJob job : jobs) {
             try {
                 schedulerService.scheduleJob(job); // Job 스케줄 등록

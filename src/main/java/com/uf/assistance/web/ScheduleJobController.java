@@ -1,6 +1,6 @@
 package com.uf.assistance.web;
 
-import com.uf.assistance.domain.scheduler.ScheduledJob;
+import com.uf.assistance.domain.scheduler.Status;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
@@ -9,6 +9,8 @@ import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ import java.util.List;
 @Tag(name ="QuartzScheduleJob Controller", description =  "쿼츠 스케줄링 관련")
 public class ScheduleJobController {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ScheduledJobService scheduledJobService;
 
     @PostMapping("/create")
@@ -35,44 +38,64 @@ public class ScheduleJobController {
                     "job_type : SendMessageAI 로 고정" +
                     "status : ENABLED, DISABLED, PAUSED 중 하나로 입력")
     public ResponseEntity<ResponseDto<SchedulerRespDto>> createJob(@RequestBody SchedulerReqDto schedulerReqDto) {
-        SchedulerRespDto schedulerRespDto = scheduledJobService.createJob(schedulerReqDto);
-
-        return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 등록성공 -" + schedulerReqDto.getJobName(), CustomDateUtil.toStringFormat(LocalDateTime.now()), schedulerRespDto), HttpStatus.CREATED);
+        try {
+            SchedulerRespDto schedulerRespDto = scheduledJobService.createJob(schedulerReqDto);
+            return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 등록성공 -" + schedulerReqDto.getJobName(), CustomDateUtil.toStringFormat(LocalDateTime.now()), schedulerRespDto), HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.error("Error Creating ScheduleJob execution info: {}", e.getMessage(), e);
+        }
+        return null;
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "스케줄 삭제 ")
     public ResponseEntity<ResponseDto<String>> deleteJob(@PathVariable Long id) {
-        String resultMessage = scheduledJobService.deleteJob(id);
-        return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 삭제 성공 -" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+
+        try{
+            String resultMessage = scheduledJobService.deleteJob(id);
+            return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 삭제 성공 -" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        }catch (Exception e){
+            logger.error("Error Deleting ScheduleJob execution info: {}", e.getMessage(), e);
+        }
+        return null;
     }
 
-    @PostMapping("/{id}/pause")
+    @PostMapping("/pause/{id}")
     @Operation(summary = "스케줄 일시 정지시키기 ")
     public ResponseEntity<ResponseDto<String>> pauseJob(@PathVariable Long id) {
-        String resultMessage = scheduledJobService.pauseJob(id);
-        return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 일시 정지 성공 -" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        try{
+            String resultMessage = scheduledJobService.pauseJob(id);
+            return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 일시 정지 성공 -" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        }catch (Exception e){
+            logger.error("Error Pausing ScheduleJob execution info: {}", e.getMessage(), e);
+        }
+        return null;
     }
 
-    @PostMapping("/{id}/resume")
+    @PostMapping("/resume/{id}")
     @Operation(summary = "스케줄 재개시키기 ")
     public ResponseEntity<ResponseDto<String>> resumeJob(@PathVariable Long id) {
         String resultMessage = scheduledJobService.resumeJob(id);
         return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 재개 성공-" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
     }
 
-    @PostMapping("/{id}/status")
+    @PostMapping("/status/{id}")
     @Operation(summary = "스케줄 상태 변경 ")
-    public ResponseEntity<ResponseDto<String>> changeJobStatus(@PathVariable Long id, @RequestParam("status") ScheduledJob.Status status) {
+    public ResponseEntity<ResponseDto<String>> changeJobStatus(@PathVariable Long id, @RequestParam("status") Status status) {
         String resultMessage = scheduledJobService.changeJobStatus(id, status);
         return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 상태 변경 성공" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
     }
 
-    @PostMapping("/{id}/onetime")
+    @PostMapping("/onetime/{id}")
     @Operation(summary = "스케줄 1회 실행 ")
     public ResponseEntity<ResponseDto<String>> triggerJobNow(@PathVariable Long id) {
-        String resultMessage = scheduledJobService.triggerJobNow(id, ScheduledJob.Status.ONETIME);
-        return new ResponseEntity<>(new ResponseDto<>(1, "작업 수동 실행 완료" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        try {
+            String resultMessage = scheduledJobService.triggerJobNow(id, Status.ONETIME);
+            return new ResponseEntity<>(new ResponseDto<>(1, "작업 수동 실행 완료" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        }catch (Exception e){
+            logger.error("Error Trigger ScheduleJob execution info: {}", e.getMessage(), e);
+        }
+        return null;
     }
 
     @GetMapping("/job")

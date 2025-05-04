@@ -3,6 +3,7 @@ package com.uf.assistance.dto.scheduler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
+import com.uf.assistance.domain.scheduler.Status;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +20,7 @@ public class SchedulerRespDto {
     private String cronExpression;
     private String jobType;
     private Map<String, Object> jobData;
-    private ScheduledJob.Status status;
+    private Status status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

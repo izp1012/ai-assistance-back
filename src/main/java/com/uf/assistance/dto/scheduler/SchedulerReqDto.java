@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
+import com.uf.assistance.domain.scheduler.Status;
 import com.uf.assistance.domain.user.User;
 import lombok.Data;
 
@@ -19,7 +20,7 @@ public class SchedulerReqDto {
     private String description;
     private String jobType;
     private Map<String, Object> jobData;
-    private ScheduledJob.Status status;
+    private Status status;
     private Long aisubscriptionId;
     private String userId;
 
@@ -29,7 +30,6 @@ public class SchedulerReqDto {
         String jobDataJson = null;
         try {
             jobDataJson = mapper.writeValueAsString(schedulerReqDto.getJobData());
-            System.out.println(jobDataJson);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("jobData 직렬화 실패", e);
         }
