@@ -43,10 +43,10 @@ public class ScheduleJobController {
             return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 등록성공 -" + schedulerReqDto.getJobName(), CustomDateUtil.toStringFormat(LocalDateTime.now()), schedulerRespDto), HttpStatus.CREATED);
         } catch (CustomApiException e) {
             logger.error("Error Creating ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 등록실패 - " + e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.CONFLICT);
         } catch (Exception e) {
             logger.error("Error Creating ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 등록실패 - " + e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -60,10 +60,10 @@ public class ScheduleJobController {
             return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 삭제 성공 -" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
         } catch (CustomApiException e){
             logger.error("Error Deleting ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 삭제 실패 -" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         } catch (Exception e){
             logger.error("Error Deleting ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 삭제 실패 -" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -76,10 +76,10 @@ public class ScheduleJobController {
             return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 일시 정지 성공 -" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
         } catch (CustomApiException e){
             logger.error("Error Pausing ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 일시 정지 실패 -" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         } catch (Exception e){
             logger.error("Error Pausing ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 일시 정지 실패 -" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -96,13 +96,13 @@ public class ScheduleJobController {
     public ResponseEntity<ResponseDto<String>> changeJobStatus(@PathVariable Long id, @RequestParam("status") Status status) {
         try {
             String resultMessage = scheduledJobService.changeJobStatus(id, status);
-            return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 상태 변경 성공" + id + "status : " + status.getDescription(), CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 상태 변경 성공" + id + ", status : " + status.getDescription(), CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
         }catch (CustomApiException e){
             logger.error("Error Changing ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 상태 변경 실패" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         }catch (Exception e){
             logger.error("Error Changing ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "스케줄 상태 변경 실패" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -114,10 +114,10 @@ public class ScheduleJobController {
             return new ResponseEntity<>(new ResponseDto<>(1, "작업 수동 실행 완료" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
         }catch (CustomApiException e){
             logger.error("Error Trigger ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "작업 수동 실행 실패" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         }catch (Exception e){
             logger.error("Error Trigger ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, "작업 수동 실행 실패" + id + " " +e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
