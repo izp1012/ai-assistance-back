@@ -47,12 +47,12 @@ public class DynamicSchedulerService {
         jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
 
         JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
-                .withIdentity(job.getJobName(), job.getJobGroup())
+                .withIdentity(job.getJobName()+"_onetime", job.getJobGroup())
                 .usingJobData(jobDataMap)
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(job.getJobName() + "_Trigger", job.getJobGroup())
+                .withIdentity(job.getJobName() + "_OneTime_Trigger", job.getJobGroup())
                 .startNow()
                 .build();
 
