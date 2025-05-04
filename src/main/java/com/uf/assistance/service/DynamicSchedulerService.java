@@ -3,6 +3,7 @@ package com.uf.assistance.service;
 import com.uf.assistance.batchjob.DynamicQuartzJob;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
+import com.uf.assistance.domain.scheduler.Status;
 import lombok.RequiredArgsConstructor;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -69,7 +70,7 @@ public class DynamicSchedulerService {
             // DB에서 작업 삭제 또는 상태 업데이트
             ScheduledJob job = scheduledJobRepository.findByJobNameAndJobGroup(jobName, groupName)
                     .orElseThrow(() -> new IllegalArgumentException("Job not found"));
-            job.setStatus(ScheduledJob.Status.DISABLED);
+            job.setStatus(Status.DISABLED);
             scheduledJobRepository.save(job);
 
             logger.info("Job deleted: {}", jobName);
@@ -90,7 +91,7 @@ public class DynamicSchedulerService {
             // DB 상태 업데이트
             ScheduledJob job = scheduledJobRepository.findByJobNameAndJobGroup(jobName, groupName)
                     .orElseThrow(() -> new IllegalArgumentException("Job not found"));
-            job.setStatus(ScheduledJob.Status.PAUSED);
+            job.setStatus(Status.PAUSED);
             scheduledJobRepository.save(job);
 
             logger.info("Job paused: {}", jobName);
@@ -111,7 +112,7 @@ public class DynamicSchedulerService {
             // DB 상태 업데이트
             ScheduledJob job = scheduledJobRepository.findByJobNameAndJobGroup(jobName, groupName)
                     .orElseThrow(() -> new IllegalArgumentException("Job not found"));
-            job.setStatus(ScheduledJob.Status.ENABLED);
+            job.setStatus(Status.ENABLED);
             scheduledJobRepository.save(job);
 
             logger.info("Job resumed: {}", jobName);
@@ -121,7 +122,34 @@ public class DynamicSchedulerService {
     }
 
     public void updateJobStatus(ScheduledJob job) throws SchedulerException {
-        // 상태 업데이트가 Quartz에 어떻게 반영되는지 구현해야 함.
+        JobKey jobKey = new JobKey(job.getJobName(), job.getJobGroup());
+
+        if (!scheduler.checkExists(jobKey)) {
+            throw new JobExecutionException("Job not found: " + job.getJobName());
+        }
+
+        switch (job.getStatus()) {
+            case ENABLED:
+                scheduler.resumeJob(jobKey);
+                logger.info("Job resumed: {}", jobKey);
+                break;
+
+            case DISABLED:
+                scheduler.deleteJob(jobKey);
+                logger.info("Job deleted: {}", jobKey);
+                break;
+
+            case PAUSED:
+                scheduler.pauseJob(jobKey);
+                logger.info("Job paused: {}", jobKey);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unsupported status: " + job.getStatus());
+        }
+
+        // DB 상태 저장
+        scheduledJobRepository.save(job);
     }
 
     /**

@@ -56,7 +56,7 @@ public class ScheduledJobService {
     public String deleteJob(Long jobId) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 스케줄입니다.");
+            throw new CustomApiException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
@@ -74,7 +74,7 @@ public class ScheduledJobService {
     public String pauseJob(Long jobId) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 스케줄입니다.");
+            throw new CustomApiException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
@@ -114,12 +114,11 @@ public class ScheduledJobService {
     public String changeJobStatus(Long jobId, Status status) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 스케줄입니다.");
+            throw new CustomApiException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
         job.setStatus(status);
-        scheduledJobRepository.save(job);
 
         try {
             schedulerService.updateJobStatus(job);
@@ -134,7 +133,7 @@ public class ScheduledJobService {
     public String triggerJobNow(Long jobId, Status status) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 스케줄입니다.");
+            throw new CustomApiException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
