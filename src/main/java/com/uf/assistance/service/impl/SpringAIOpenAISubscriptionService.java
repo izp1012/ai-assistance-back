@@ -2,7 +2,6 @@ package com.uf.assistance.service.impl;
 
 import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.domain.ai.AISubscriptionRepository;
-import com.uf.assistance.domain.ai.BaseAIRepository;
 import com.uf.assistance.domain.ai.CustomAI;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.dto.ai.AISubScriptionRespDto;
@@ -28,18 +27,15 @@ import java.util.*;
 public class SpringAIOpenAISubscriptionService implements AISubscriptionService {
     private static final Logger logger = LoggerFactory.getLogger(SpringAIOpenAISubscriptionService.class);
 
-    private final BaseAIRepository baseAiRepository;
     private final AISubscriptionRepository aiSubscriptionRepository;
     private final AIService aiService;
     private final UserService userService;
 
     @Autowired
     public SpringAIOpenAISubscriptionService(
-            BaseAIRepository baseAiRepository,
             AISubscriptionRepository aiSubscriptionRepository,
             SpringAIOpenAIService aiService,
             UserService userService) {
-        this.baseAiRepository = baseAiRepository;
         this.aiSubscriptionRepository = aiSubscriptionRepository;
         this.aiService = aiService;
         this.userService = userService;
@@ -112,18 +108,27 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
     @Override
     @Transactional
-    public void unsubscribe(String userId, Long aiId) {
+    public Map<String, String> unsubscribe(String userId, Long aiId) {
         logger.debug("사용자 ID: {}의 AI ID: {} 구독 취소", userId, aiId);
 
         User user = userService.findUserEntityById(userId);
         CustomAI customAI = aiService.getCustomAIById(aiId);
 
+        HashMap<String, String> rtnMap = new HashMap<>();
         Optional<AISubscription> subscription = aiSubscriptionRepository.findByUserAndCustomAI(user, customAI);
         if (subscription.isPresent()) {
             aiSubscriptionRepository.delete(subscription.get());
             logger.info("사용자 ID: {}의 AI ID: {} 구독이 취소되었습니다", userId, aiId);
+            String rtnMsg = String.format("사용자 ID: %s의 AI ID: %s 구독이 취소되었습니다", userId, aiId);
+            rtnMap.put("code", "1");
+            rtnMap.put("msg", rtnMsg);
+            return rtnMap;
         } else {
-            logger.warn("사용자 ID: {}의 AI ID: {} 구독 정보가 없습니다", userId, aiId);
+            logger.warn("사용자 ID: {} 의 AI ID: {} 구독 정보가 없습니다", userId, aiId);
+            String rtnMsg = String.format("사용자 ID: %s의 AI ID: %s 구독 정보가 없습니다", userId, aiId);
+            rtnMap.put("code", "-1");
+            rtnMap.put("msg", rtnMsg);
+            return rtnMap;
         }
     }
 
@@ -159,9 +164,7 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
             }
 
             // AI 서비스를 통해 응답 생성
-            String response = aiService.generateResponse(promptText, null);
-
-            return response;
+            return aiService.generateResponse(promptText, null);
 
         } catch (NullPointerException e){
             logger.error("OpenAI API 호출 중 NPE 오류 발생: {}", e.getMessage(), e);

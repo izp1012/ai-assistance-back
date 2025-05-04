@@ -43,7 +43,7 @@ public interface AISubscriptionService {
      * @param userId 사용자 ID
      * @param aiId AI ID
      */
-    void unsubscribe(String userId, Long aiId);
+    Map<String, String> unsubscribe(String userId, Long aiId);
 
     /**
      * 독립형 AI 응답 생성 (채팅방 없이)

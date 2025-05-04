@@ -8,6 +8,7 @@ import com.uf.assistance.dto.user.UserRespDto;
 import com.uf.assistance.service.AISubscriptionService;
 import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class AISubscriptionController {
 
     @GetMapping("/{userId}")
     @Transactional(readOnly = true)
+    @Operation(summary = "사용자 ID 기준으로 구독목록 가져오기")
     public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getSubscribedAIsbyUserId(@PathVariable String userId) {
         try {
             List<CustomAIRespDto> customAIRespDtos = aiSubscriptionService.getSubscribedAIs(userId);
@@ -40,11 +43,10 @@ public class AISubscriptionController {
             logger.error("사용자 구독리스트 조회 실패: {}", e.getMessage(), e);
             return new ResponseEntity<>(new ResponseDto<>(-1, "사용자 구독리스트 조회 실패", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         }
-
-
     }
 
     @PostMapping("/subscribe")
+    @Operation(summary = "구독정보 등록")
     public ResponseEntity<ResponseDto<AISubScriptionRespDto>> subscribe(@RequestBody AISubScriptionReqDto aiSubScriptionReqDto) {
 
         try {
@@ -56,5 +58,12 @@ public class AISubscriptionController {
         }catch (Exception e) {
             return new ResponseEntity<>(new ResponseDto<>(-1, "AI 구독실패 " + e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         }
+    }
+
+    @DeleteMapping(value = "/delete/{customAiId}/{userId}")
+    @Operation(summary = "구독정보 삭제")
+    public ResponseEntity<ResponseDto<String>> unsubscribeCustomAI(@PathVariable Long customAiId, @PathVariable String userId) {
+        HashMap<String, String> rtnMap = (HashMap<String, String>) aiSubscriptionService.unsubscribe(userId, customAiId);
+        return new ResponseEntity<>(new ResponseDto<>(Integer.valueOf(rtnMap.get("code")), "AI 구독취소", CustomDateUtil.toStringFormat(LocalDateTime.now()), rtnMap.get("msg")), HttpStatus.OK);
     }
 }
