@@ -10,6 +10,8 @@ import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
 import lombok.RequiredArgsConstructor;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class ScheduledJobService {
     private final DynamicSchedulerService schedulerService;
     private final AISubscriptionService aiSubscriptionService;
     private final UserService userService;
+    private final Scheduler scheduler;
 
     @Transactional
     public SchedulerRespDto createJob(SchedulerReqDto schedulerReqDto) {
@@ -34,7 +37,10 @@ public class ScheduledJobService {
         User user = userService.findUserEntityById(schedulerReqDto.getUserId());
 
         String jobName = schedulerReqDto.getJobName();
+        String userId = schedulerReqDto.getUserId();
         String jobGroup = schedulerReqDto.getJobGroup();
+
+        JobKey jobKey = new JobKey(jobName + "_" + userId, jobGroup);
 
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findByJobNameAndJobGroupAndAiSubscription(jobName, jobGroup, aiSubscription);
         if (jobOpt.isEmpty()) {
@@ -42,13 +48,17 @@ public class ScheduledJobService {
             scheduledJobRepository.save(job);
 
             try {
-                schedulerService.scheduleJob(job);
-                return SchedulerRespDto.from(job);
+                if (!scheduler.checkExists(jobKey)) {
+                    schedulerService.scheduleJob(job);
+                    return SchedulerRespDto.from(job);
+                } else {
+                    throw new SchedulerException("Job " + job.getJobName() + " already exists");
+                }
             } catch (SchedulerException e) {
-                throw new RuntimeException("스케줄 등록 실패", e);
+                throw new RuntimeException("스케줄 등록 실패 - "+e.getMessage(), e);
             }
         }else{
-            throw new CustomApiException("이미 등록된 스케줄입니다.");
+            throw new CustomApiException("이미 등록된 스케줄입니다. - "+jobName + "_" + userId);
         }
     }
 
@@ -160,11 +170,9 @@ public class ScheduledJobService {
 
         List<ScheduledJob> list = scheduledJobRepository.findAll(spec);
 
-        List<SchedulerRespDto> customAIRespDtoList = list.stream()
+        return list.stream()
                 .map(SchedulerRespDto::from)
                 .collect(Collectors.toList());
-
-        return customAIRespDtoList;
     }
 
     public List<SchedulerRespDto> getAllJobs() {

@@ -28,12 +28,12 @@ public class DynamicSchedulerService {
         jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
 
         JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
-                .withIdentity(job.getJobName(), job.getJobGroup())
+                .withIdentity(job.getJobName() + "_" + job.getUser().getUserId(), job.getJobGroup())
                 .usingJobData(jobDataMap)
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(job.getJobName() + "_trigger", job.getJobGroup())
+                .withIdentity(job.getJobName() + "_" + job.getUser().getUserId() + "_trigger", job.getJobGroup())
                 .withSchedule(CronScheduleBuilder.cronSchedule(job.getCronExpression()))
                 .build();
 
@@ -48,12 +48,12 @@ public class DynamicSchedulerService {
         jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
 
         JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
-                .withIdentity(job.getJobName()+"_onetime", job.getJobGroup())
+                .withIdentity(job.getJobName() + "_" + job.getUser().getUserId() +"_onetime", job.getJobGroup())
                 .usingJobData(jobDataMap)
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(job.getJobName() + "_OneTime_Trigger", job.getJobGroup())
+                .withIdentity(job.getJobName() + "_" + job.getUser().getUserId() + "_OneTime_Trigger", job.getJobGroup())
                 .startNow()
                 .build();
 
