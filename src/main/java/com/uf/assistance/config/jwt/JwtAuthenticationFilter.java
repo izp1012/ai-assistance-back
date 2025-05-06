@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -74,7 +75,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.addHeader(JwtVO.HEADER_STRING, jwToken);
 
         LoginRespDto loginRespDto = new LoginRespDto(loginUser.getUser(), jwToken);
-        CustomResponseUtil.success(response, "Login", "jwt-Login 성공", loginRespDto);
+        CustomResponseUtil.success(response, "Login", "Login 성공", loginRespDto);
     }
 
     @Override
@@ -82,6 +83,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                               AuthenticationException failed) throws IOException, ServletException {
         logger.debug("디버그: unsuccessfulAuthentication 호출");
         logger.error(failed.getMessage());
-        CustomResponseUtil.fail(response, "Login", "jwt-Login 실패", null);
+        CustomResponseUtil.fail(response, "Login", "Login 실패 - " + failed.getMessage(), HttpStatus.valueOf(response.getStatus()));
     }
 }
