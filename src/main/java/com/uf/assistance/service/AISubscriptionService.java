@@ -40,10 +40,9 @@ public interface AISubscriptionService {
 
     /**
      * AI 구독 취소
-     * @param userId 사용자 ID
-     * @param aiId AI ID
+     * @param aisubscriptionId 구독 ID
      */
-    Map<String, String> unsubscribe(String userId, Long aiId);
+    Map<String, String> unsubscribe(Long aisubscriptionId);
 
     /**
      * 독립형 AI 응답 생성 (채팅방 없이)

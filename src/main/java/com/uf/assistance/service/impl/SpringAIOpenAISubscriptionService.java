@@ -108,24 +108,20 @@ public class SpringAIOpenAISubscriptionService implements AISubscriptionService 
 
     @Override
     @Transactional
-    public Map<String, String> unsubscribe(String userId, Long aiId) {
-        logger.debug("사용자 ID: {}의 AI ID: {} 구독 취소", userId, aiId);
-
-        User user = userService.findUserEntityById(userId);
-        CustomAI customAI = aiService.getCustomAIById(aiId);
-
+    public Map<String, String> unsubscribe(Long aisubscriptionId) {
         HashMap<String, String> rtnMap = new HashMap<>();
-        Optional<AISubscription> subscription = aiSubscriptionRepository.findByUserAndCustomAI(user, customAI);
+        Optional<AISubscription> subscription = aiSubscriptionRepository.findById(aisubscriptionId);
+
         if (subscription.isPresent()) {
             aiSubscriptionRepository.delete(subscription.get());
-            logger.info("사용자 ID: {}의 AI ID: {} 구독이 취소되었습니다", userId, aiId);
-            String rtnMsg = String.format("사용자 ID: %s의 AI ID: %s 구독이 취소되었습니다", userId, aiId);
+            logger.info("AI 구독 ID : {} 구독이 취소되었습니다", aisubscriptionId);
+            String rtnMsg = String.format("AI 구독 ID : %s 구독이 취소되었습니다", aisubscriptionId);
             rtnMap.put("code", "1");
             rtnMap.put("msg", rtnMsg);
             return rtnMap;
         } else {
-            logger.warn("사용자 ID: {} 의 AI ID: {} 구독 정보가 없습니다", userId, aiId);
-            String rtnMsg = String.format("사용자 ID: %s의 AI ID: %s 구독 정보가 없습니다", userId, aiId);
+            logger.error("AI 구독 ID : {} 구독 정보가 없습니다", aisubscriptionId);
+            String rtnMsg = String.format("AI 구독 ID : %s 구독 정보가 없습니다", aisubscriptionId);
             rtnMap.put("code", "-1");
             rtnMap.put("msg", rtnMsg);
             return rtnMap;

@@ -60,10 +60,10 @@ public class AISubscriptionController {
         }
     }
 
-    @DeleteMapping(value = "/delete/{customAiId}/{userId}")
+    @DeleteMapping(value = "/delete/{aisubscriptionId}")
     @Operation(summary = "구독정보 삭제")
-    public ResponseEntity<ResponseDto<String>> unsubscribeCustomAI(@PathVariable Long customAiId, @PathVariable String userId) {
-        HashMap<String, String> rtnMap = (HashMap<String, String>) aiSubscriptionService.unsubscribe(userId, customAiId);
+    public ResponseEntity<ResponseDto<String>> unsubscribeCustomAI(@PathVariable Long aisubscriptionId) {
+        HashMap<String, String> rtnMap = (HashMap<String, String>) aiSubscriptionService.unsubscribe(aisubscriptionId);
         return new ResponseEntity<>(new ResponseDto<>(Integer.valueOf(rtnMap.get("code")), "AI 구독취소", CustomDateUtil.toStringFormat(LocalDateTime.now()), rtnMap.get("msg")), HttpStatus.OK);
     }
 }
