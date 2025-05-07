@@ -112,7 +112,11 @@ public class ChatService {
         return chatRepository.findByAiSubscriptionId(aiSubscriptionId, pageable);
     }
 
+    public List<Chat> getLastAIMessagesForUser(String userId) {
+        return chatRepository.findLatestASSISTANTMessageBySender(userId);
+    }
+
     public List<Chat> getLastMessagesForUser(String userId) {
-        return chatRepository.findLatestMessageByCustomAiIdAndSender(userId);
+        return chatRepository.findLatestMessageIdAndSender(userId);
     }
 }

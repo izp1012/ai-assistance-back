@@ -50,7 +50,7 @@ public class ChatController {
         }
 
         ChatRespDto chatRespDtoUser = chatService.sendMessage(chatReqDto, subscriptionId, MessageType.USER);
-        ChatRespDto chatRespDtoAI = chatService.sendMessageAI(chatReqDto, subscriptionId, MessageType.USER);
+        ChatRespDto chatRespDtoAI = chatService.sendMessageAI(chatReqDto, subscriptionId, MessageType.ASSISTANT);
         System.out.println("📨AI - 받은 메시지: " + chatRespDtoAI.getContent() + " / From : " + chatReqDto.getSender());
 
         messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, chatRespDtoUser);
@@ -97,10 +97,10 @@ public class ChatController {
         return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
     }
 
-    @GetMapping("/messages/user/{userId}")
+    @GetMapping("/messages/latest/user/{userId}")
     @ResponseBody
     @Transactional
-    @Tag(name ="사용자별, 구독한 AI 들의 마지막 채팅 가져오기")
+    @Tag(name ="사용자의 구독별 마지막 채팅 가져오기")
     public ResponseEntity<ResponseDto<List<ChatRespDto>>> getLastMessagesbyUserID(@PathVariable String userId) {
 
         List<Chat> messages = chatService.getLastMessagesForUser(userId);
@@ -109,7 +109,22 @@ public class ChatController {
             chatRespDtoList.add(ChatRespDto.from(chat));
         }
 
-        return new ResponseEntity<>(new ResponseDto<>(1, "사용자별 AI 별 마지막 채팅 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoList), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "사용자의 구독별 마지막 채팅 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoList), HttpStatus.OK);
+    }
+
+    @GetMapping("/messages/latest/AI/{userId}")
+    @ResponseBody
+    @Transactional
+    @Tag(name ="사용자의 구독별 AI 의 마지막 채팅 가져오기")
+    public ResponseEntity<ResponseDto<List<ChatRespDto>>> getLastAIMessagesbyUserID(@PathVariable String userId) {
+
+        List<Chat> messages = chatService.getLastAIMessagesForUser(userId);
+        List<ChatRespDto> chatRespDtoList = new ArrayList<>();
+        for(Chat chat : messages){
+            chatRespDtoList.add(ChatRespDto.from(chat));
+        }
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "사용자의 구독별 AI 의 마지막 채팅 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoList), HttpStatus.OK);
     }
 
     @GetMapping("/messages/{subscriptionId}/page")
