@@ -34,10 +34,23 @@ public class AISubscriptionController {
 
     @GetMapping("/{userId}")
     @Transactional(readOnly = true)
-    @Operation(summary = "사용자 ID 기준으로 구독목록 가져오기")
-    public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getSubscribedAIsbyUserId(@PathVariable String userId) {
+    @Operation(summary = "사용자 ID 기준으로 CustomAI 구독 목록 가져오기")
+    public ResponseEntity<ResponseDto<List<CustomAIRespDto>>> getSubscribedCustomAIsbyUserId(@PathVariable String userId) {
         try {
-            List<CustomAIRespDto> customAIRespDtos = aiSubscriptionService.getSubscribedAIs(userId);
+            List<CustomAIRespDto> customAIRespDtos = aiSubscriptionService.getSubscribedCustomAIs(userId);
+            return new ResponseEntity<>(new ResponseDto<>(1, "사용자 구독리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtos), HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("사용자 구독리스트 조회 실패: {}", e.getMessage(), e);
+            return new ResponseEntity<>(new ResponseDto<>(-1, "사용자 구독리스트 조회 실패", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/relation/{userId}")
+    @Transactional(readOnly = true)
+    @Operation(summary = "사용자 ID 기준으로 구독정보 가져오기")
+    public ResponseEntity<ResponseDto<List<AISubScriptionRespDto>>> getSubscriptionsbyUserId(@PathVariable String userId) {
+        try {
+            List<AISubScriptionRespDto> customAIRespDtos = aiSubscriptionService.getSubscriptions(userId);
             return new ResponseEntity<>(new ResponseDto<>(1, "사용자 구독리스트 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDtos), HttpStatus.OK);
         } catch (Exception e) {
             logger.error("사용자 구독리스트 조회 실패: {}", e.getMessage(), e);
@@ -64,6 +77,13 @@ public class AISubscriptionController {
     @Operation(summary = "구독정보 삭제")
     public ResponseEntity<ResponseDto<String>> unsubscribeCustomAI(@PathVariable Long aisubscriptionId) {
         HashMap<String, String> rtnMap = (HashMap<String, String>) aiSubscriptionService.unsubscribe(aisubscriptionId);
+        return new ResponseEntity<>(new ResponseDto<>(Integer.valueOf(rtnMap.get("code")), "AI 구독취소", CustomDateUtil.toStringFormat(LocalDateTime.now()), rtnMap.get("msg")), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/delete/{customAiId}/{userId}")
+    @Operation(summary = "구독정보 삭제")
+    public ResponseEntity<ResponseDto<String>> unsubscribeCustomAI(@PathVariable Long customAiId, @PathVariable String userId) {
+        HashMap<String, String> rtnMap = (HashMap<String, String>) aiSubscriptionService.unsubscribe(userId, customAiId);
         return new ResponseEntity<>(new ResponseDto<>(Integer.valueOf(rtnMap.get("code")), "AI 구독취소", CustomDateUtil.toStringFormat(LocalDateTime.now()), rtnMap.get("msg")), HttpStatus.OK);
     }
 }

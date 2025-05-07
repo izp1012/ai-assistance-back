@@ -32,6 +32,13 @@ public interface AISubscriptionRepository extends JpaRepository<AISubscription, 
     Optional<AISubscription> findByUserAndCustomAI(User user, CustomAI customAI);
 
     /**
+     * 사용자의 AI 구독목록 조회
+     * @param user 사용자
+     * @return 구독 정보
+     */
+    List<AISubscription> findByUser(User user);
+
+    /**
      * 사용자의 특정 AI 구독 여부 확인
      * @param user 사용자
      * @param customAI AI

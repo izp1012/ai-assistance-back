@@ -20,7 +20,15 @@ public interface AISubscriptionService {
      * @param userId 사용자 ID
      * @return 구독한 AI 목록
      */
-    List<CustomAIRespDto> getSubscribedAIs(String userId);
+    List<CustomAIRespDto> getSubscribedCustomAIs(String userId);
+
+
+    /**
+     * 특정 사용자가 구독한 AI 현황 조회
+     * @param userId 사용자 ID
+     * @return 구독한 AI 목록
+     */
+    List<AISubScriptionRespDto> getSubscriptions(String userId);
 
     /**
      * 사용자의 AI 구독 여부 확인
@@ -43,6 +51,13 @@ public interface AISubscriptionService {
      * @param aisubscriptionId 구독 ID
      */
     Map<String, String> unsubscribe(Long aisubscriptionId);
+
+    /**
+     * AI 구독 취소
+     * @param userId 사용자 ID
+     * @param aiId AI ID
+     */
+    Map<String, String> unsubscribe(String userId, Long aiId);
 
     /**
      * 독립형 AI 응답 생성 (채팅방 없이)
