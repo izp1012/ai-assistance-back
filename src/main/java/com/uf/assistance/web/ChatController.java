@@ -66,7 +66,7 @@ public class ChatController {
         System.out.println("📨 받은 메시지: " + chatReqDto.getContent() + " / From : " + chatReqDto.getSender());
         ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, subscriptionId, MessageType.USER);
 
-        messagingTemplate.convertAndSend("/topic/public/" + subscriptionId, chatRespDto);
+        messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, chatRespDto);
 
         return new ResponseEntity<>(new ResponseDto<>(1, "채팅 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
@@ -130,17 +130,34 @@ public class ChatController {
     @GetMapping("/messages/{subscriptionId}/page")
     @ResponseBody
     @Transactional
-    public ResponseEntity<ResponseDto<Page<ChatRespDto>>> getMessagesWithPagination(
+    public ResponseEntity<ResponseDto<Page<ChatRespDto>>> getMessagesWithPaginationAsc(
             @PathVariable Long subscriptionId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Page<Chat> messages = chatService.getMessagesByAiIdWithPagination(subscriptionId, page, size);
+        Page<Chat> messages = chatService.getMessagesByAiIdWithPaginationAscending(subscriptionId, page, size);
 
         // Chat 엔티티를 ChatRespDto로 변환
         Page<ChatRespDto> chatDtos = messages.map(ChatRespDto::from);
 
 
-        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회 - 오름차순", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
+    }
+
+    @GetMapping("/messages/{subscriptionId}/page/descending")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<ResponseDto<Page<ChatRespDto>>> getMessagesWithPaginationDesc(
+            @PathVariable Long subscriptionId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Chat> messages = chatService.getMessagesByAiIdWithPaginationDescending(subscriptionId, page, size);
+
+        // Chat 엔티티를 ChatRespDto로 변환
+        Page<ChatRespDto> chatDtos = messages.map(ChatRespDto::from);
+
+
+        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 목록 페이징 조회 - 내림차순", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatDtos), HttpStatus.OK);
     }
 }

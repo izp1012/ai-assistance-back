@@ -16,6 +16,8 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     Page<Chat> findByAiSubscriptionId(Long aiSubscriptionId, Pageable pageable);
 
+    Page<Chat> findByAiSubscriptionIdOrderByTimestampDesc(Long aiSubscriptionId, Pageable pageable);
+
     @Query("""
     SELECT c FROM Chat c
     WHERE c.id IN (

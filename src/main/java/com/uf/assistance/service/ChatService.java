@@ -107,9 +107,14 @@ public class ChatService {
         return chatRepository.findBySender_UserIdOrderByTimestamp(userId);
     }
 
-    public Page<Chat> getMessagesByAiIdWithPagination(Long aiSubscriptionId, int page, int size) {
+    public Page<Chat> getMessagesByAiIdWithPaginationAscending(Long aiSubscriptionId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").ascending());
         return chatRepository.findByAiSubscriptionId(aiSubscriptionId, pageable);
+    }
+
+    public Page<Chat> getMessagesByAiIdWithPaginationDescending(Long aiSubscriptionId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        return chatRepository.findByAiSubscriptionIdOrderByTimestampDesc(aiSubscriptionId, pageable);
     }
 
     public List<Chat> getLastAIMessagesForUser(String userId) {
