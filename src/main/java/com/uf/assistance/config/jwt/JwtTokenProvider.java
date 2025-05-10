@@ -21,7 +21,9 @@ import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @Component
@@ -71,15 +73,15 @@ public class JwtTokenProvider {
 
         //accessToken 생성
         String accessToken = Jwts.builder()
-                .setSubject(subject)
+                .subject(subject)
                 .claim("roles", role)
-                .setExpiration(Date.from(refreshTokenExpirationDate))
+                .expiration(Date.from(refreshTokenExpirationDate))
                 .signWith(key)
                 .compact();
 
         //refreshToken 생성
         String refreshToken = Jwts.builder()
-                .setExpiration(Date.from(now.plusMillis(refreshTokenValidationTime)))
+                .expiration(Date.from(now.plusMillis(refreshTokenValidationTime)))
                 .signWith(key)
                 .compact();
 
@@ -99,7 +101,7 @@ public class JwtTokenProvider {
      * @throws ExpiredJwtException
      */
     public Authentication getAuthentication(String accessToken) throws ExpiredJwtException {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
+        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(accessToken).getPayload();
 
         if(claims.get("roles") == null) {
             throw new RuntimeException("권한정보가 없는 토큰입니다.");
@@ -112,7 +114,7 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("잘못된 JWT 서명입니다.");
