@@ -8,6 +8,7 @@ import com.uf.assistance.handler.JwtAccessDeniedHandler;
 import com.uf.assistance.handler.JwtAuthenticationEntryPoint;
 import com.uf.assistance.handler.OAuth2SuccessHandler;
 import com.uf.assistance.service.OAuth2UserService;
+import com.uf.assistance.service.TokenService;
 import com.uf.assistance.util.CustomResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -55,16 +56,18 @@ public class SecurityConfig {
     //JWT 필터 등록이 필요함
     public static class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
         private final JwtTokenProvider jwtTokenProvider;
+        private final TokenService tokenService;
 
-        public CustomSecurityFilterManager(JwtTokenProvider jwtTokenProvider) {
+        public CustomSecurityFilterManager(JwtTokenProvider jwtTokenProvider, TokenService tokenService) {
             this.jwtTokenProvider = jwtTokenProvider;
+            this.tokenService = tokenService;
         }
 
         @Override
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
 
-            builder.addFilter(new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider));
+            builder.addFilter(new JwtAuthenticationFilter(authenticationManager, tokenService));
             builder.addFilter(new JwtAuthorizationFilter(authenticationManager, jwtTokenProvider));
             builder.addFilterBefore(new JwtRequestFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
             super.configure(builder);
@@ -77,7 +80,7 @@ public class SecurityConfig {
 
     // JWT 서버 생성 예정. Session 미사용
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, TokenService tokenService) throws Exception {
 
         log.debug("디버그: filterChain 빈 등록됨");
 
@@ -104,7 +107,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(jwtAccessDeniedHandler)
         );
         // 커스텀 보안 필터 관리자 설정
-        http.with(new CustomSecurityFilterManager(jwtTokenProvider), CustomSecurityFilterManager::build);
+        http.with(new CustomSecurityFilterManager(jwtTokenProvider, tokenService), CustomSecurityFilterManager::build);
 
         // 인증 실패 가로채기
         http.exceptionHandling(exception -> exception

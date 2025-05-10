@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.dto.user.LoginReqDto;
 import com.uf.assistance.dto.user.LoginRespDto;
-import com.uf.assistance.service.UserService;
+import com.uf.assistance.dto.user.TokenDTO;
+import com.uf.assistance.service.TokenService;
 import com.uf.assistance.util.CustomResponseUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -27,13 +29,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AuthenticationManager authenticationManager;
-    private JwtTokenProvider jwtProvider;
+    private TokenService tokenService;
 
-    private UserService userService;
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtProvider) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, TokenService tokenService) {
         super(authenticationManager);
-        this.authenticationManager = authenticationManager;
-        this.jwtProvider = jwtProvider;
+        this.tokenService = tokenService;
         setFilterProcessesUrl("/api/login");
     }
 
@@ -41,6 +41,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
         logger.debug("디버그 : attemptAuthentication 호출됨");
+
         try{
             ObjectMapper om = new ObjectMapper();
             LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
@@ -71,11 +72,23 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         logger.debug("디버그 : successfulAuthentication 호출됨");
 
         LoginUser loginUser = (LoginUser) authResult.getPrincipal();
-        String jwToken = JwtProcess.create(loginUser);
-        response.addHeader(JwtVO.HEADER_STRING, jwToken);
+        LoginRespDto loginRespDto = new LoginRespDto(loginUser.getUser());
+        TokenDTO tokenDTO = tokenService.createToken(loginRespDto);
 
-        LoginRespDto loginRespDto = new LoginRespDto(loginUser.getUser(), jwToken);
-        CustomResponseUtil.success(response, "Login", "Login 성공", loginRespDto);
+        ResponseCookie responseCookie = ResponseCookie
+                .from("refresh_token", tokenDTO.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .maxAge(tokenDTO.getDuration())
+                .path("/")
+                .build();
+
+        response.addHeader("Set-Cookie", responseCookie.toString()); // Set-Cookie 헤더에 쿠키 추가
+
+        LoginRespDto loginRespDto2 = new LoginRespDto(loginUser.getUser(), tokenDTO.getAccessToken());
+
+        CustomResponseUtil.success(response, "Login", "Login 성공", loginRespDto2);
     }
 
     @Override
