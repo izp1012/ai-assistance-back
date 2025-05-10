@@ -12,7 +12,6 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -66,12 +65,13 @@ public class DynamicQuartzJob implements Job {
                     ChatReqDto chatReqDto = ChatReqDto.builder()
                             .sender(senderName)
                             .content(prompt)
-                            .type(MessageType.ASSISTANT)
                             .build();
 
-                    ChatRespDto aiResponse = chatService.sendMessageAI(chatReqDto, subscriptionId, MessageType.ASSISTANT);
-                    messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, aiResponse);
-                    // 예: Send message logic
+                    ChatRespDto userChatDto = chatService.sendMessage(chatReqDto, subscriptionId, MessageType.USER);
+                    ChatRespDto aiChatDto = chatService.sendMessageAI(chatReqDto, subscriptionId, MessageType.ASSISTANT);
+
+                    messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, userChatDto);
+                    messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, aiChatDto);
 
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
