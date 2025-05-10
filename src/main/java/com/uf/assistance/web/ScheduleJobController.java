@@ -14,10 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/auth/schedule")
@@ -106,18 +109,42 @@ public class ScheduleJobController {
         }
     }
 
+    @Async
+    public CompletableFuture<String> executeJobAsync(Long id, Status status) {
+        try {
+            String resultMessage = scheduledJobService.triggerJobNow(id, status);
+            return CompletableFuture.completedFuture(resultMessage);
+        } catch (CustomApiException e){
+            logger.error("Error Trigger ScheduleJob execution info: {}", e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        } catch (Exception e) {
+            logger.error("Error executing ScheduleJob asynchronously (ID: {}): {}", id, e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
     @PostMapping("/onetime/{id}")
     @Operation(summary = "스케줄 1회 실행 ")
-    public ResponseEntity<ResponseDto<String>> triggerJobNow(@PathVariable Long id) {
+    public ResponseEntity<ResponseDto<String>> triggerJobNowAsync(@PathVariable Long id) {
+        logger.info("비동기 작업 실행 요청 (ID: {})", id);
+        CompletableFuture<String> futureResult =executeJobAsync(id, Status.ONETIME);
+
         try {
-            String resultMessage = scheduledJobService.triggerJobNow(id, Status.ONETIME);
-            return new ResponseEntity<>(new ResponseDto<>(1, "작업 수동 실행 완료" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
-        }catch (CustomApiException e){
-            logger.error("Error Trigger ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
-        }catch (Exception e){
-            logger.error("Error Trigger ScheduleJob execution info: {}", e.getMessage(), e);
-            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            String resultMessage = futureResult.get(); // 비동기 작업 완료까지 현재 스레드 블로킹
+            return new ResponseEntity<>(new ResponseDto<>(1, "작업 수동 실행 요청 완료- 작업은 백그라운드에서 실행됨" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("비동기 작업 Interrupted (ID: {}): {}", id, e.getMessage(), e);
+            return new ResponseEntity<>(
+                    new ResponseDto<>(-1, "작업 실행 중 오류 발생 (Interrupted): " + e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        } catch (ExecutionException e) {
+            logger.error("비동기 작업 Execution Exception (ID: {}): {}", id, e.getMessage(), e);
+            return new ResponseEntity<>(
+                    new ResponseDto<>(-1, "작업 실행 중 오류 발생: " + e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
 
     }
