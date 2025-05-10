@@ -3,23 +3,17 @@ package com.uf.assistance.web;
 import com.uf.assistance.config.auth.LoginUser;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.user.*;
-import com.uf.assistance.service.OAuth2UserService;
-import com.uf.assistance.service.TokenService;
 import com.uf.assistance.service.UserService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -27,28 +21,25 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
-@Log4j2
+@Slf4j
 @Tag(name = "사용자 CRUD", description = "사용자 CRUD 관련 API")
 public class UserController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final UserService userService;
-    private final TokenService tokenService;
-    private final OAuth2UserService oAuth2UserService;
 
     @PostMapping("/auth/join")
-    public ResponseEntity<?> join(HttpServletRequest request, @RequestBody @Valid JoinReqDto joinReqDto, BindingResult bindingResult){
+    public ResponseEntity<?> join(@RequestBody @Valid JoinReqDto joinReqDto){
         JoinRespDto joinRespDto = userService.join(joinReqDto);
         return new ResponseEntity<>(new ResponseDto<>(1, "회원가입 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), joinRespDto), HttpStatus.CREATED);
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
+    public ResponseEntity<?> login(HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto){
         LoginRespDto loginRespDto = userService.login(loginReqDto, response);
         return new ResponseEntity<>(new ResponseDto<>(1, "로그인 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), loginRespDto), HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login2(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto, BindingResult bindingResult){
+    public ResponseEntity<?> login2(HttpServletResponse response, @RequestBody @Valid LoginReqDto loginReqDto){
         TokenDTO tokenDTO = userService.login2(loginReqDto, response);
 
         ResponseCookie responseCookie = ResponseCookie
@@ -60,6 +51,8 @@ public class UserController {
                 .path("/")
                 .build();
 
+        response.addHeader("Set-Cookie", responseCookie.toString()); // Set-Cookie 헤더에 쿠키 추가
+
         TokenRespDto tokenResponseDTO = TokenRespDto.builder()
                 .isNewMember(false)
                 .accessToken(tokenDTO.getAccessToken())
@@ -70,7 +63,7 @@ public class UserController {
     @GetMapping("/auth/get-current-member")
     public UserRespDto getCurrentMember(Authentication authentication){
         String userId = ((LoginUser) authentication.getPrincipal()).getUser().getUserId();
-        logger.debug("authentication.getName() : " + userId);
+        log.debug("authentication.getName() : " + userId);
         return userService.findUserById(userId);
     }
 }
