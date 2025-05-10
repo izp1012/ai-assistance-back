@@ -5,12 +5,13 @@ import com.uf.assistance.domain.token.RefreshToken;
 import com.uf.assistance.domain.token.RefreshTokenRepository;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
-import com.uf.assistance.dto.user.LoginReqDto;
 import com.uf.assistance.dto.user.LoginRespDto;
 import com.uf.assistance.dto.user.TokenDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,25 +23,49 @@ public class TokenService {
 
     public TokenDTO createToken(LoginRespDto loginRespDto) {
         TokenDTO tokenDTO = tokenProvider.createTokenReqDto(loginRespDto.getUserId(), loginRespDto.getRole());
-        User user = userRepository.findByUserId(loginRespDto.getUserId()).orElseThrow(() -> new RuntimeException("Wrong Access (user does not exist)"));
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(tokenDTO.getRefreshToken())
-                .build();
+        User user = userRepository.findByUserId(loginRespDto.getUserId()).orElseThrow(()
+                -> new RuntimeException("Wrong Access (user does not exist)"));
 
-        refreshTokenRepository.save(refreshToken);
+        // 기존 리프레시 토큰이 있는지 확인
+        Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findByUser(user);
+
+        if (existingRefreshToken.isPresent()) {
+            // 기존 토큰이 있다면 업데이트
+            RefreshToken refreshToken = existingRefreshToken.get();
+            refreshToken.updateValue(tokenDTO.getRefreshToken());
+            refreshTokenRepository.save(refreshToken);
+        } else {
+            // 기존 토큰이 없다면 새로 생성
+            RefreshToken refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .token(tokenDTO.getRefreshToken())
+                    .build();
+            refreshTokenRepository.save(refreshToken);
+        }
 
         return tokenDTO;
     }
 
     public TokenDTO createToken(User user) {
-        TokenDTO tokenDTO = tokenProvider.createTokenReqDto(user.getUserId(), user.getRole());
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(tokenDTO.getRefreshToken())
-                .build();
 
-        refreshTokenRepository.save(refreshToken);
+        TokenDTO tokenDTO = tokenProvider.createTokenReqDto(user.getUserId(), user.getRole());
+
+        // 기존 리프레시 토큰이 있는지 확인
+        Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findByUser(user);
+
+        if (existingRefreshToken.isPresent()) {
+            // 기존 토큰이 있다면 업데이트
+            RefreshToken refreshToken = existingRefreshToken.get();
+            refreshToken.updateValue(tokenDTO.getRefreshToken());
+            refreshTokenRepository.save(refreshToken);
+        } else {
+            // 기존 토큰이 없다면 새로 생성
+            RefreshToken refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .token(tokenDTO.getRefreshToken())
+                    .build();
+            refreshTokenRepository.save(refreshToken);
+        }
 
         return tokenDTO;
     }
