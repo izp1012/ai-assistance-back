@@ -7,14 +7,16 @@ server:
 
 spring:
   datasource:
-#    url: jdbc:postgresql://localhost:5432/postgres
+    # Docker 로컬 PostgreSQL 사용 시 아래 주석 해제 (docker-compose up -d 실행 필요)
+#    url: jdbc:postgresql://localhost:5432/youf
 #    driver-class-name: org.postgresql.Driver
-#    username: postgres
-#    password: 1234
-      url: jdbc:h2:mem:test;MODE=MySQL
-      driver-class-name: org.h2.Driver
-      username: sa
-      password:
+#    username: admin
+#    password: admin1234
+    # H2 인메모리 DB (기본값)
+    url: jdbc:h2:mem:test;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
   h2:
     console:
       enabled: true
