@@ -19,8 +19,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.security.Key;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +31,9 @@ public class OAuth2Service {
 
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String googleClientSecret;
+
+    @Value("${app.oauth2.redirect-uri}")
+    private String googleRedirectUri;
 
 //    @Value("${app.auth.token-secret}")
 //    private String tokenSecret;
@@ -71,8 +72,7 @@ public class OAuth2Service {
         body.add("code", authCode);
         body.add("client_id", googleClientId);
         body.add("client_secret", googleClientSecret);
-//        body.add("redirect_uri", "com.example.app:/oauth2callback");  // 모바일 앱의 리다이렉트 URI
-        body.add("redirect_uri", "http://3.39.234.47:3000/");  // 모바일 앱의 리다이렉트 URI
+        body.add("redirect_uri", googleRedirectUri);
         body.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
@@ -204,7 +204,7 @@ public class OAuth2Service {
         return result;
     }
 
-    private OAuth2Attribute getGoogleData(String id_token) throws ParseException, JsonProcessingException, ParseException {
+    private OAuth2Attribute getGoogleData(String id_token) throws JsonProcessingException, ParseException {
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> entity = new HttpEntity<>(headers);

@@ -1,8 +1,6 @@
 package com.uf.assistance.web;
 
-import com.uf.assistance.domain.ai.AISubscriptionRepository;
 import com.uf.assistance.domain.chat.Chat;
-import com.uf.assistance.domain.chat.ChatRepository;
 import com.uf.assistance.domain.chat.MessageType;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.message.ChatReqDto;
@@ -38,8 +36,6 @@ public class ChatController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final AISubscriptionRepository aiSubscriptionRepository;
-    private final ChatRepository chatRepository;
 
     @MessageMapping("/chat.sendMessageAI/{subscriptionId}")
     @SendTo("/topic/public/ai/{subscriptionId}")
