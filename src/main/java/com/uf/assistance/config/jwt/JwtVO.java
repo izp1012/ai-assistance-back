@@ -15,8 +15,12 @@ public class JwtVO {
     // 초기화를 위한 생성자
     @Autowired
     public JwtVO(Environment environment) {
-        // SECRET 값을 Environment에서 가져옴
+        // 1순위: DB env_setting 테이블의 SECRET 키
         SECRET = environment.getProperty("SECRET");
+        // 2순위: yml의 jwt.secret (로컬/개발 환경 폴백)
+        if (SECRET == null) {
+            SECRET = environment.getProperty("jwt.secret");
+        }
         if (SECRET == null) {
             SECRET = "ERROR";
         }

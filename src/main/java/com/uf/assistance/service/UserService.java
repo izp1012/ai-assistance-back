@@ -1,7 +1,6 @@
 package com.uf.assistance.service;
 
 import com.uf.assistance.config.auth.LoginUser;
-import com.uf.assistance.config.jwt.JwtProcess;
 import com.uf.assistance.config.jwt.JwtVO;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
@@ -63,19 +62,20 @@ public class UserService implements UserDetailsService {
             throw new CustomApiException("비밀번호가 일치하지 않습니다");
         }
 
-        // JWT 생성
-        LoginUser loginUser = new LoginUser(user);
-        String jwtToken = JwtProcess.create(loginUser);
+        // JWT 생성 - JwtTokenProvider(JJWT) 로 통일하여 validateToken 과 동일 라이브러리 사용
+        TokenDTO tokenDTO = tokenService.createToken(user);
+        String accessToken = tokenDTO.getAccessToken();
 
         // HTTP 응답 헤더에 JWT 추가
-        response.addHeader(JwtVO.HEADER_STRING, JwtVO.TOKEN_PREFIX + jwtToken);
+        response.addHeader(JwtVO.HEADER_STRING, JwtVO.TOKEN_PREFIX + accessToken);
 
         // SecurityContextHolder 에 저장
+        LoginUser loginUser = new LoginUser(user);
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-        return new LoginRespDto(user, jwtToken);
+        return new LoginRespDto(user, accessToken);
     }
 
     public TokenDTO login2(LoginReqDto loginReqDto, HttpServletResponse response) {
