@@ -5,7 +5,6 @@ import com.uf.assistance.config.jwt.JwtProcess;
 import com.uf.assistance.config.jwt.JwtVO;
 import com.uf.assistance.domain.user.User;
 import com.uf.assistance.domain.user.UserRepository;
-import com.uf.assistance.domain.user.UserRole;
 import com.uf.assistance.dto.user.*;
 import com.uf.assistance.handler.exception.CustomApiException;
 import com.uf.assistance.handler.exception.ResourceNotFoundException;
@@ -44,9 +43,8 @@ public class UserService implements UserDetailsService {
             throw new CustomApiException("동일한 UserID 가 존재합니다.");
         }
 
-        // 2. 패스워드 인코딩 - 회원가입
+        // 2. 패스워드 인코딩 + role 포함하여 저장
         User user = userRepository.save(joinReqDto.toEntity(passwordEncoder));
-        user.updateRole(UserRole.USER);
 
         // 3. dto 응답
         return new JoinRespDto(user);
@@ -104,7 +102,7 @@ public class UserService implements UserDetailsService {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        ;
+
         return tokenService.createToken(userOptional.get());
     }
 

@@ -1,6 +1,7 @@
 package com.uf.assistance.dto.user;
 
 import com.uf.assistance.domain.user.User;
+import com.uf.assistance.domain.user.UserRole;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -36,6 +37,7 @@ public class JoinReqDto {
                 .username(username)
                 .password(passwordEncoder.encode(password))
                 .email(email)
+                .role(UserRole.USER)
                 .build();
     }
 }

@@ -136,6 +136,8 @@ public class SecurityConfig {
                         "/api/login/**",
                         "/api/login2/**",
                         "/api/join/**",
+                        "/api/auth/login",
+                        "/api/auth/join",
                         "/api/oauth2/**",
                         "/api/oauth2/login/google",
                         "/api/image/**").permitAll()
