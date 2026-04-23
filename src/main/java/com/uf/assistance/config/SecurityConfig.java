@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -129,9 +130,9 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/v3/api-docs/**", // OpenAPI JSON
+                .requestMatchers("/v3/api-docs/**",
                         "/api-docs/**",
-                        "/swagger-ui/**",    // Swagger UI
+                        "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/api/login/**",
                         "/api/login2/**",
@@ -141,10 +142,12 @@ public class SecurityConfig {
                         "/api/oauth2/**",
                         "/api/oauth2/login/google",
                         "/api/image/**").permitAll()
-//                .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())
-//                .requestMatchers("/api/auth/**").permitAll()
-//                .requestMatchers("/api/admin/**").permitAll() //임시로 모든 요청 허용
-                .requestMatchers("/chat/**").permitAll() //WebSocket 엔드포인트 허용
+                .requestMatchers("/chat/**").permitAll()
+                // 관리자 전용 — BaseAI 생성/수정/삭제
+                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST,   "/api/auth/ai/base/create").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/auth/ai/base/update/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/auth/ai/base/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/auth/**").authenticated());
 
         return http.build();
