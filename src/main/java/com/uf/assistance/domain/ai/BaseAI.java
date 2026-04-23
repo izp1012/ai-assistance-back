@@ -1,6 +1,7 @@
 package com.uf.assistance.domain.ai;
 
 import com.uf.assistance.domain.user.User;
+import com.uf.assistance.dto.ai.BaseAIReqDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -81,6 +82,16 @@ public class BaseAI {
         if (updatedBy == null) {
             updatedBy = createdBy;  // 생성 시 updatedAt을 createdAt과 동일하게 설정
         }
+    }
+
+    public BaseAI update(BaseAIReqDto req, User updatedByUser) {
+        this.name = req.getName();
+        this.description = req.getDescription();
+        this.aiProvider = req.getAiProvider();
+        this.basePrompt = req.getBasePrompt();
+        this.active = req.isActive();
+        this.updatedBy = updatedByUser;
+        return this;
     }
 }
 

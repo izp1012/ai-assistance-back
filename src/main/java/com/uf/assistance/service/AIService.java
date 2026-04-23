@@ -92,4 +92,19 @@ public interface AIService {
      * @return 변경한 AI 정보
      */
     CustomAIRespDto updateCustomAI(CustomAIReqDto aiReqDto, MultipartFile file);
+
+    /**
+     * BaseAI 수정 (관리자 전용)
+     */
+    BaseAIRespDto updateBaseAI(Long id, BaseAIReqDto dto);
+
+    /**
+     * BaseAI 삭제 (관리자 전용)
+     */
+    void deleteBaseAI(Long id);
+
+    /**
+     * CustomAI 삭제
+     */
+    void deleteCustomAI(Long id);
 }

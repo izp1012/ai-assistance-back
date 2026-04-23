@@ -120,4 +120,22 @@ public class AiController {
         return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 변경 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), customAIRespDto), HttpStatus.OK);
     }
 
+    @PutMapping("/base/update/{id}")
+    public ResponseEntity<?> updateBaseAI(@PathVariable Long id, @RequestBody BaseAIReqDto baseAIReqDto) {
+        BaseAIRespDto result = aiService.updateBaseAI(id, baseAIReqDto);
+        return new ResponseEntity<>(new ResponseDto<>(1, "Base AI 변경 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), result), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/base/{id}")
+    public ResponseEntity<?> deleteBaseAI(@PathVariable Long id) {
+        aiService.deleteBaseAI(id);
+        return new ResponseEntity<>(new ResponseDto<>(1, "Base AI 삭제 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/custom/{id}")
+    public ResponseEntity<?> deleteCustomAI(@PathVariable Long id) {
+        aiService.deleteCustomAI(id);
+        return new ResponseEntity<>(new ResponseDto<>(1, "Custom AI 삭제 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.OK);
+    }
+
 }

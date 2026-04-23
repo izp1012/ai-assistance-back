@@ -21,6 +21,7 @@ public class CustomAIRespDto {
     private Long id;
     private String name;
     private String description;
+    private Long baseAiId;
     private String basePrompt;
     private String customPrompt;
     private String imageUrl;
@@ -51,7 +52,8 @@ public class CustomAIRespDto {
                 .id(customAI.getId())
                 .name(customAI.getName())
                 .description(customAI.getDescription())
-                .imageUrl(fullImageUrl) // 이미지 파일명
+                .imageUrl(fullImageUrl)
+                .baseAiId(customAI.getBaseAI().getId())
                 .basePrompt(customAI.getBaseAI().getBasePrompt())
                 .customPrompt(customAI.getCustomPrompt())
                 .createByUsrId(customAI.getCreatedBy().getUserId())
