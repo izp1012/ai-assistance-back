@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class ChatRoomRespDto {
     private Long id;
     private String name;
+    private String chatRoomType;
     private String description;
     private LocalDateTime createdAt;
 
@@ -22,6 +23,7 @@ public class ChatRoomRespDto {
         return ChatRoomRespDto.builder()
                 .id(chatRoom.getId())
                 .name(chatRoom.getName())
+                .chatRoomType(String.valueOf(chatRoom.getType()))
                 .description(chatRoom.getDescription())
                 .createdAt(chatRoom.getCreatedAt())
                 .build();

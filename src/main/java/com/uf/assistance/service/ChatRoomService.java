@@ -16,23 +16,23 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
 
     @Transactional(readOnly = true)
-    public List<ChatRoom> getAllRooms() {
+    public List<ChatRoom> getAllChatRooms() {
         return chatRoomRepository.findAll();
     }
 
     @Transactional(readOnly = true)
-    public ChatRoom getRoomById(Long id) {
+    public ChatRoom getChatRoomById(Long id) {
         return chatRoomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("ChatRoom not found with id: " + id));
     }
 
     @Transactional
-    public ChatRoomRespDto createRoom(ChatRoom chatRoom) {
+    public ChatRoomRespDto createChatRoom(ChatRoom chatRoom) {
         return ChatRoomRespDto.fromEntity(chatRoomRepository.save(chatRoom));
     }
 
     @Transactional
-    public void deleteRoom(Long id) {
+    public void deleteChatRoom(Long id) {
         chatRoomRepository.deleteById(id);
     }
 
