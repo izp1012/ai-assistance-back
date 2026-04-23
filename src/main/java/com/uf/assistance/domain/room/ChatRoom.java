@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Builder
-@Table(name = "room_tb")
+@Table(name = "chat_room_tb")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Room {
+public class ChatRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,4 +31,7 @@ public class Room {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ChatRoomType type;
 }

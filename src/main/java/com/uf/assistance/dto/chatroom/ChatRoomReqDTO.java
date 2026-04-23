@@ -1,6 +1,6 @@
-package com.uf.assistance.dto.room;
+package com.uf.assistance.dto.chatroom;
 
-import com.uf.assistance.domain.room.Room;
+import com.uf.assistance.domain.room.ChatRoom;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,18 +11,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomReqDTO {
+public class ChatRoomReqDTO {
     private String name;
     private String description;
 
-    public static Room toEntity(RoomReqDTO dto) {
+    public static ChatRoom toEntity(ChatRoomReqDTO dto) {
 
-        Room room = Room.builder()
+        ChatRoom chatRoom = ChatRoom.builder()
                 .name(dto.name)
                 .description(dto.description)
                 .build();
 
-        return room;
+        return chatRoom;
     }
 
 }
