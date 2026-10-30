@@ -1,5 +1,6 @@
 package com.uf.assistance.web;
 
+import com.uf.assistance.domain.ai.AISubscription;
 import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.ai.AISubScriptionReqDto;
 import com.uf.assistance.dto.ai.AISubScriptionRespDto;
@@ -42,6 +43,19 @@ public class AISubscriptionController {
         } catch (Exception e) {
             logger.error("사용자 구독리스트 조회 실패: {}", e.getMessage(), e);
             return new ResponseEntity<>(new ResponseDto<>(-1, "사용자 구독리스트 조회 실패", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/{subscriptionId}/chatroom")
+    @Transactional(readOnly = true)
+    @Operation(summary = "구독 ID로 채팅방 진입 정보 조회")
+    public ResponseEntity<ResponseDto<AISubScriptionRespDto>> getChatRoomInfo(@PathVariable Long subscriptionId) {
+        try {
+            AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(subscriptionId);
+            return new ResponseEntity<>(new ResponseDto<>(1, "채팅방 정보 조회", CustomDateUtil.toStringFormat(LocalDateTime.now()), AISubScriptionRespDto.from(aiSubscription)), HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("채팅방 정보 조회 실패: {}", e.getMessage(), e);
+            return new ResponseEntity<>(new ResponseDto<>(-1, "채팅방 정보 조회 실패", CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
         }
     }
 
