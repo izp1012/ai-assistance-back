@@ -10,6 +10,7 @@ import com.uf.assistance.dto.scheduler.SchedulerReqDto;
 import com.uf.assistance.dto.scheduler.SchedulerRespDto;
 import com.uf.assistance.handler.exception.CustomApiException;
 import lombok.RequiredArgsConstructor;
+import org.quartz.CronExpression;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -33,6 +34,12 @@ public class ScheduledJobService {
 
     @Transactional
     public SchedulerRespDto createJob(SchedulerReqDto schedulerReqDto) {
+        // Quartz cron은 초 단위 포함 6~7자리 (예: 0 15 10 * * ?)
+        String cronExpression = schedulerReqDto.getCronExpression();
+        if (cronExpression == null || !CronExpression.isValidExpression(cronExpression)) {
+            throw new IllegalArgumentException("잘못된 cron 표현식입니다. (초 분 시 일 월 요일 형식, 예: 0 15 10 * * ?) - " + cronExpression);
+        }
+
         AISubscription aiSubscription = aiSubscriptionService.getAISubScriptionById(schedulerReqDto.getAisubscriptionId());
         User user = userService.findUserEntityById(schedulerReqDto.getUserId());
 
@@ -40,12 +47,11 @@ public class ScheduledJobService {
         String userId = schedulerReqDto.getUserId();
         String jobGroup = schedulerReqDto.getJobGroup();
 
-        JobKey jobKey = new JobKey(jobName + "_" + userId, jobGroup);
-
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findByJobNameAndJobGroupAndAiSubscription(jobName, jobGroup, aiSubscription);
         if (jobOpt.isEmpty()) {
             ScheduledJob job = SchedulerReqDto.toEntity(schedulerReqDto, aiSubscription, user);
             scheduledJobRepository.save(job);
+            JobKey jobKey = DynamicSchedulerService.jobKeyOf(job);
 
             try {
                 if (!scheduler.checkExists(jobKey)) {
@@ -71,7 +77,7 @@ public class ScheduledJobService {
 
         ScheduledJob job = jobOpt.get();
         try {
-            schedulerService.removeJob(job.getJobName(), job.getJobGroup());
+            schedulerService.removeJob(job);
             scheduledJobRepository.delete(job);
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 삭제 실패", e);
@@ -92,7 +98,7 @@ public class ScheduledJobService {
         scheduledJobRepository.save(job);
 
         try {
-            schedulerService.pauseJob(job.getJobName(), job.getJobGroup());
+            schedulerService.pauseJob(job);
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 일시 정지 실패", e);
         }
@@ -104,7 +110,7 @@ public class ScheduledJobService {
     public String resumeJob(Long jobId) {
         Optional<ScheduledJob> jobOpt = scheduledJobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
-            throw new RuntimeException("존재하지 않는 스케줄입니다.");
+            throw new CustomApiException("존재하지 않는 스케줄입니다.");
         }
 
         ScheduledJob job = jobOpt.get();
@@ -112,7 +118,7 @@ public class ScheduledJobService {
         scheduledJobRepository.save(job);
 
         try {
-            schedulerService.resumeJob(job.getJobName(), job.getJobGroup());
+            schedulerService.resumeJob(job);
         } catch (SchedulerException e) {
             throw new RuntimeException("스케줄 재개 실패", e);
         }

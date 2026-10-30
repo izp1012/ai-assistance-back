@@ -37,11 +37,13 @@ public class DynamicQuartzJob implements Job {
         String jobGroup = context.getJobDetail().getKey().getGroup();
         String jobName = context.getJobDetail().getKey().getName();
         String jobData = jobDataMap.getString("jobData");
-        logger.info("스케줄된 작업이 실행되었습니다. Group : {}, Name : {}",jobGroup, jobName);
+        // jobType 기준 분기, jobType이 없는 기존 등록 잡은 jobGroup으로 대체
+        String jobType = jobDataMap.getString("jobType") != null ? jobDataMap.getString("jobType") : jobGroup;
+        logger.info("스케줄된 작업이 실행되었습니다. Group : {}, Name : {}, Type : {}",jobGroup, jobName, jobType);
 
 
         // 로직 분기
-        switch (jobGroup) {
+        switch (jobType) {
             case "SendMessageAI":
                 JobDataMap dataMap = context.getJobDetail().getJobDataMap();
 
@@ -82,7 +84,7 @@ public class DynamicQuartzJob implements Job {
                 // 데이터 검증 로직
                 break;
             default:
-                throw new IllegalArgumentException("Unknown jobGroup: " + jobGroup);
+                throw new IllegalArgumentException("Unknown jobType: " + jobType);
         }
     }
 }

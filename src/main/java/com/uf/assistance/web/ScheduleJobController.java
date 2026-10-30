@@ -47,6 +47,9 @@ public class ScheduleJobController {
         } catch (CustomApiException e) {
             logger.error("Error Creating ScheduleJob execution info: {}", e.getMessage(), e);
             return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.CONFLICT);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid ScheduleJob request: {}", e.getMessage());
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error("Error Creating ScheduleJob execution info: {}", e.getMessage(), e);
             return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -90,8 +93,16 @@ public class ScheduleJobController {
     @PostMapping("/resume/{id}")
     @Operation(summary = "스케줄 재개시키기 - 추후 changeJobStatus 로 통합예정")
     public ResponseEntity<ResponseDto<String>> resumeJob(@PathVariable Long id) {
-        String resultMessage = scheduledJobService.resumeJob(id);
-        return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 재개 성공-" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        try{
+            String resultMessage = scheduledJobService.resumeJob(id);
+            return new ResponseEntity<>(new ResponseDto<>(1, "스케줄 재개 성공-" + id, CustomDateUtil.toStringFormat(LocalDateTime.now()), resultMessage), HttpStatus.OK);
+        } catch (CustomApiException e){
+            logger.error("Error Resuming ScheduleJob execution info: {}", e.getMessage(), e);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.NOT_FOUND);
+        } catch (Exception e){
+            logger.error("Error Resuming ScheduleJob execution info: {}", e.getMessage(), e);
+            return new ResponseEntity<>(new ResponseDto<>(-1, e.getMessage(), CustomDateUtil.toStringFormat(LocalDateTime.now()), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/status/{id}")

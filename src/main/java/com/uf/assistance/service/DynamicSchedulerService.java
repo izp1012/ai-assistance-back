@@ -3,14 +3,12 @@ package com.uf.assistance.service;
 import com.uf.assistance.batchjob.DynamicQuartzJob;
 import com.uf.assistance.domain.scheduler.ScheduledJob;
 import com.uf.assistance.domain.scheduler.ScheduledJobRepository;
-import com.uf.assistance.domain.scheduler.Status;
 import lombok.RequiredArgsConstructor;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -23,17 +21,27 @@ public class DynamicSchedulerService {
     private final Scheduler scheduler;
     private final ScheduledJobRepository scheduledJobRepository;
 
+    /**
+     * Quartz JobKey 생성 (jobName_userId, jobGroup)
+     * 등록/조회/일시정지/재개/삭제 모두 이 키를 사용해야 함
+     */
+    public static JobKey jobKeyOf(ScheduledJob job) {
+        return new JobKey(job.getJobName() + "_" + job.getUser().getUserId(), job.getJobGroup());
+    }
+
     public void scheduleJob(ScheduledJob job) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
+        jobDataMap.put("jobType", job.getJobType()); // DynamicQuartzJob 실행 로직 분기 기준
 
+        JobKey jobKey = jobKeyOf(job);
         JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
-                .withIdentity(job.getJobName() + "_" + job.getUser().getUserId(), job.getJobGroup())
+                .withIdentity(jobKey)
                 .usingJobData(jobDataMap)
                 .build();
 
         Trigger trigger = TriggerBuilder.newTrigger()
-                .withIdentity(job.getJobName() + "_" + job.getUser().getUserId() + "_trigger", job.getJobGroup())
+                .withIdentity(jobKey.getName() + "_trigger", job.getJobGroup())
                 .withSchedule(CronScheduleBuilder.cronSchedule(job.getCronExpression()))
                 .build();
 
@@ -46,6 +54,7 @@ public class DynamicSchedulerService {
     public void triggerOneTimeJob(ScheduledJob job) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("jobData", job.getJobData()); // ✨ jobData 세팅
+        jobDataMap.put("jobType", job.getJobType()); // DynamicQuartzJob 실행 로직 분기 기준
 
         JobDetail jobDetail = JobBuilder.newJob(DynamicQuartzJob.class)
                 .withIdentity(job.getJobName() + "_" + job.getUser().getUserId() +"_onetime", job.getJobGroup())
@@ -60,88 +69,61 @@ public class DynamicSchedulerService {
         scheduler.scheduleJob(jobDetail, trigger);
     }
 
-    @Transactional
-    public boolean removeJob(String jobName, String groupName) throws SchedulerException {
-        JobKey jobKey = new JobKey(jobName, groupName);
+    /**
+     * Quartz에서 작업 삭제 (DB 처리는 호출 측 담당)
+     */
+    public boolean removeJob(ScheduledJob job) throws SchedulerException {
+        JobKey jobKey = jobKeyOf(job);
 
         if (scheduler.checkExists(jobKey)) {
             boolean result = scheduler.deleteJob(jobKey);
-
-            // DB에서 작업 삭제 또는 상태 업데이트
-            ScheduledJob job = scheduledJobRepository.findByJobNameAndJobGroup(jobName, groupName)
-                    .orElseThrow(() -> new IllegalArgumentException("Job not found"));
-            job.setStatus(Status.DISABLED);
-            scheduledJobRepository.save(job);
-
-            logger.info("Job deleted: {}", jobName);
+            logger.info("Job deleted: {}", jobKey);
             return result;
         }
+        logger.warn("Job not registered in Quartz, skip delete: {}", jobKey);
         return false;
     }
 
     /**
-     * 작업 일시 중지
+     * 작업 일시 중지 (DB 처리는 호출 측 담당)
      */
-    @Transactional
-    public void pauseJob(String jobName, String groupName) throws SchedulerException {
-        JobKey jobKey = new JobKey(jobName, groupName);
+    public void pauseJob(ScheduledJob job) throws SchedulerException {
+        JobKey jobKey = jobKeyOf(job);
         if (scheduler.checkExists(jobKey)) {
             scheduler.pauseJob(jobKey);
-
-            // DB 상태 업데이트
-            ScheduledJob job = scheduledJobRepository.findByJobNameAndJobGroup(jobName, groupName)
-                    .orElseThrow(() -> new IllegalArgumentException("Job not found"));
-            job.setStatus(Status.PAUSED);
-            scheduledJobRepository.save(job);
-
-            logger.info("Job paused: {}", jobName);
+            logger.info("Job paused: {}", jobKey);
         } else {
-            throw new JobExecutionException("Job not found: " + jobName);
+            throw new JobExecutionException("Job not found: " + jobKey);
         }
     }
 
     /**
-     * 작업 재개
+     * 작업 재개 (DB 처리는 호출 측 담당)
+     * 서버 재시작 시 SchedulerInitializer는 ENABLED 작업만 등록하므로, 미등록 상태면 새로 등록
      */
-    @Transactional
-    public void resumeJob(String jobName, String groupName) throws SchedulerException {
-        JobKey jobKey = new JobKey(jobName, groupName);
+    public void resumeJob(ScheduledJob job) throws SchedulerException {
+        JobKey jobKey = jobKeyOf(job);
         if (scheduler.checkExists(jobKey)) {
             scheduler.resumeJob(jobKey);
-
-            // DB 상태 업데이트
-            ScheduledJob job = scheduledJobRepository.findByJobNameAndJobGroup(jobName, groupName)
-                    .orElseThrow(() -> new IllegalArgumentException("Job not found"));
-            job.setStatus(Status.ENABLED);
-            scheduledJobRepository.save(job);
-
-            logger.info("Job resumed: {}", jobName);
+            logger.info("Job resumed: {}", jobKey);
         } else {
-            throw new JobExecutionException("Job not found: " + jobName);
+            scheduleJob(job);
+            logger.info("Job re-scheduled on resume: {}", jobKey);
         }
     }
 
     public void updateJobStatus(ScheduledJob job) throws SchedulerException {
-        JobKey jobKey = new JobKey(job.getJobName(), job.getJobGroup());
-
-        if (!scheduler.checkExists(jobKey)) {
-            throw new JobExecutionException("Job not found: " + job.getJobName());
-        }
-
         switch (job.getStatus()) {
             case ENABLED:
-                scheduler.resumeJob(jobKey);
-                logger.info("Job resumed: {}", jobKey);
+                resumeJob(job);
                 break;
 
             case DISABLED:
-                scheduler.deleteJob(jobKey);
-                logger.info("Job deleted: {}", jobKey);
+                removeJob(job);
                 break;
 
             case PAUSED:
-                scheduler.pauseJob(jobKey);
-                logger.info("Job paused: {}", jobKey);
+                pauseJob(job);
                 break;
 
             default:
