@@ -10,6 +10,8 @@ import com.uf.assistance.handler.exception.ResourceNotFoundException;
 import com.uf.assistance.service.AIService;
 import com.uf.assistance.service.FileStorageService;
 import com.uf.assistance.service.UserService;
+
+import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
@@ -40,6 +42,7 @@ public class SpringAIOpenAIService implements AIService {
 
     private final BaseAIRepository baseAiRepository;
     private final CustomAIRepository customAiRepository;
+    private final AISubscriptionRepository aiSubscriptionRepository;
     private final ChatModel chatModel;
     private final OpenAiChatOptions openAiChatOptions;
     private final String apiKey;
@@ -47,18 +50,20 @@ public class SpringAIOpenAIService implements AIService {
     private final UserService userService;
     private final FileStorageService fileStorageService;
 
-
     public SpringAIOpenAIService(
             BaseAIRepository baseAiRepository,
             CustomAIRepository customAiRepository,
+            AISubscriptionRepository aiSubscriptionRepository,
             ChatModel chatModel,
             OpenAiChatOptions openAiChatOptions,
             @Value("${spring.ai.openai.api-key:#{null}}") String apiKey,
-            @Value("${openai.max.tokens:4096}") int maxTokens, UserService userService,
+            @Value("${openai.max.tokens:4096}") int maxTokens,
+            UserService userService,
             FileStorageService fileStorageService
     ) {
         this.baseAiRepository = baseAiRepository;
         this.customAiRepository = customAiRepository;
+        this.aiSubscriptionRepository = aiSubscriptionRepository;
         this.chatModel = chatModel;
         this.openAiChatOptions = openAiChatOptions;
         this.apiKey = apiKey;
@@ -189,23 +194,55 @@ public class SpringAIOpenAIService implements AIService {
     }
 
     @Override
+    @Transactional
     public CustomAIRespDto createCustomAI(CustomAIReqDto customAIReqDto, MultipartFile file) {
         BaseAI baseAI = this.getBaseAIById(customAIReqDto.getBaseAiId());
-
         User user = userService.findUserEntityById(customAIReqDto.getUserId());
 
         // 이미지 처리
         String imageUrl;
         if (file != null && !file.isEmpty()) {
-            // 이미지 URL 생성
             imageUrl = fileStorageService.storeFile(file);
         } else {
-            // 기본 이미지 URL 사용 (이미지가 없는 경우)
             imageUrl = customAIReqDto.getImageUrl();
         }
 
         CustomAI customAI = customAiRepository.save(CustomAIReqDto.toEntity(customAIReqDto, baseAI, user, imageUrl));
+
+        // CustomAI 생성 시 생성자를 첫 번째 구독자로 자동 등록
+        if (!aiSubscriptionRepository.existsByUserAndCustomAI(user, customAI)) {
+            AISubscription subscription = AISubscription.builder()
+                    .user(user)
+                    .customAI(customAI)
+                    .isActive(true)
+                    .subscribedAt(LocalDateTime.now())
+                    .lastUsedAt(LocalDateTime.now())
+                    .build();
+            aiSubscriptionRepository.save(subscription);
+        }
+
         return CustomAIRespDto.from(customAI);
+    }
+
+    @Override
+    @Transactional
+    public BaseAIRespDto updateBaseAI(Long id, BaseAIReqDto dto) {
+        BaseAI baseAI = getBaseAIById(id);
+        User user = userService.findUserEntityById(dto.getUserId());
+        baseAI.update(dto, user);
+        return BaseAIRespDto.from(baseAI);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBaseAI(Long id) {
+        baseAiRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCustomAI(Long id) {
+        customAiRepository.deleteById(id);
     }
 
     @Override
