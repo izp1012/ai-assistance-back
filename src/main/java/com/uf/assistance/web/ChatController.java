@@ -2,23 +2,24 @@ package com.uf.assistance.web;
 
 import com.uf.assistance.domain.chat.Chat;
 import com.uf.assistance.domain.chat.MessageType;
-import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.dto.message.ChatReqDto;
 import com.uf.assistance.dto.message.ChatRespDto;
+import com.uf.assistance.dto.ResponseDto;
 import com.uf.assistance.service.ChatService;
 import com.uf.assistance.util.CustomDateUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -33,13 +34,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth/")
 @Tag(name = "채팅", description = "채팅 관련 API")
 public class ChatController {
-
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat.sendMessageAI/{subscriptionId}")
-    @SendTo("/topic/public/ai/{subscriptionId}")
-    public ResponseEntity<?> sendMessageAI(@Payload @Valid ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId) {
+    public void sendMessageAI(@Payload @Valid ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId) {
 
         if (subscriptionId == null) {
             throw new IllegalArgumentException("roomId is missing in the WebSocket request");
@@ -47,36 +47,31 @@ public class ChatController {
 
         ChatRespDto chatRespDtoUser = chatService.sendMessage(chatReqDto, subscriptionId, MessageType.USER);
         ChatRespDto chatRespDtoAI = chatService.sendMessageAI(chatReqDto, subscriptionId, MessageType.ASSISTANT);
-        System.out.println("📨AI - 받은 메시지: " + chatRespDtoAI.getContent() + " / From : " + chatReqDto.getSender());
+        logger.info("📨AI - 받은 메시지: " + chatRespDtoAI.getContent() + " / From : " + chatReqDto.getSender());
 
         messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, chatRespDtoUser);
         messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, chatRespDtoAI);
-
-        return new ResponseEntity<>(new ResponseDto<>(1, "AI 채팅 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDtoAI), HttpStatus.OK);
     }
 
     @MessageMapping("/chat.sendMessage/{subscriptionId}")
-    @SendTo("/topic/public/ai/{subscriptionId}")
-    public ResponseEntity<?> sendMessage(@Payload @Valid ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId) {
+    public void sendMessage(@Payload @Valid ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId) {
 
-        System.out.println("📨 받은 메시지: " + chatReqDto.getContent() + " / From : " + chatReqDto.getSender());
         ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, subscriptionId, MessageType.USER);
+        logger.info("📨 받은 메시지: " + chatReqDto.getContent() + " / From : " + chatReqDto.getSender());
 
         messagingTemplate.convertAndSend("/topic/public/ai/" + subscriptionId, chatRespDto);
-
-        return new ResponseEntity<>(new ResponseDto<>(1, "채팅 성공", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
     }
 
     @MessageMapping("/chat.addUser/{subscriptionId}")
-    @SendTo("/topic/public/{subscriptionId}")
-    public ResponseEntity<?> addUser(@Payload ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId
-            , SimpMessageHeaderAccessor headerAccessor) {
-        // Add username in web socket session
+    public void addUser(@Payload ChatReqDto chatReqDto, @DestinationVariable Long subscriptionId,
+            SimpMessageHeaderAccessor headerAccessor) {
+
         headerAccessor.getSessionAttributes().put("username", chatReqDto.getSender());
-        headerAccessor.getSessionAttributes().put("subscriptionIdsubscriptionId", subscriptionId.toString());
+        headerAccessor.getSessionAttributes().put("subscriptionId", subscriptionId.toString());
 
         ChatRespDto chatRespDto = chatService.sendMessage(chatReqDto, subscriptionId, MessageType.JOIN);
-        return new ResponseEntity<>(new ResponseDto<>(1, "사용자 추가", CustomDateUtil.toStringFormat(LocalDateTime.now()), chatRespDto), HttpStatus.OK);
+
+        messagingTemplate.convertAndSend("/topic/public/" + subscriptionId, chatRespDto);
     }
 
     @GetMapping("/messages/subscription/{subscriptionId}")
